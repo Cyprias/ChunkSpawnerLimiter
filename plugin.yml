@@ -1,0 +1,8 @@
+name: ChunkSpawnerLimiter
+main: com.cyprias.chunkspawnerlimiter.ChunkSpawnerLimiter
+version: 0.0.1
+
+commands:
+   csl:
+      description: Default cmd.
+      usage: /<command>
