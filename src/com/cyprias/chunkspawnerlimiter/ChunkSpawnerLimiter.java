@@ -2,7 +2,6 @@ package com.cyprias.chunkspawnerlimiter;
 
 import java.io.File;
 
-import org.bukkit.Server;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ChunkSpawnerLimiter extends JavaPlugin {
@@ -11,7 +10,7 @@ public class ChunkSpawnerLimiter extends JavaPlugin {
 	public Events events;
 	public Config config;
 
-	private String stPluginEnabled = chatPrefix + "§f%s §7v§f%s §7is enabled.";
+	private String stPluginEnabled = "§f%s §7v§f%s §7is enabled.";
 
 	public void onEnable() {
 		config = new Config(this);
