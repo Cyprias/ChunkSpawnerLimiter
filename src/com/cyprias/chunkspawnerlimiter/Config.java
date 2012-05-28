@@ -7,13 +7,18 @@ public class Config {
 	private ChunkSpawnerLimiter plugin;
 	private static Configuration config;
 	
-	int maxmobperchunk = 0;
+	static int totalMobTypePerChunk, totalMobsPerChunk, surroundingRadius;
+	static Boolean checkSurroundingChunks, onlyLimitSpawners;
 	
 	public Config(ChunkSpawnerLimiter plugin) {
 		this.plugin = plugin;
 		config = plugin.getConfig().getRoot();
 		config.options().copyDefaults(true);
 		plugin.saveConfig();
-		maxmobperchunk = config.getInt("maxmobperchunk");
+		totalMobTypePerChunk = config.getInt("totalMobTypePerChunk");
+		totalMobsPerChunk = config.getInt("totalMobsPerChunk");
+		checkSurroundingChunks = config.getBoolean("checkSurroundingChunks");
+		surroundingRadius = config.getInt("surroundingRadius");
+		onlyLimitSpawners = config.getBoolean("onlyLimitSpawners"); 
 	}
 }

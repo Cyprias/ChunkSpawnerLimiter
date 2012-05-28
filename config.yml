@@ -1,1 +1,5 @@
-maxmobperchunk: 15
+totalMobsPerChunk: 100
+totalMobTypePerChunk: 25
+checkSurroundingChunks: true
+surroundingRadius: 2
+onlyLimitSpawners: true
