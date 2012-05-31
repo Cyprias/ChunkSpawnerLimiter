@@ -21,16 +21,14 @@ public class Events implements Listener {
 	public Events(ChunkSpawnerLimiter plugin) {
 		this.plugin = plugin;
 	}
-	
-	
-	
+
 	@EventHandler
 	public void onCreatureSpawnEvent(CreatureSpawnEvent event) {
 		if (event.isCancelled()) {
 			return;
 		}
-		
-		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER){
+
+		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
 			EntityType eType = event.getEntityType();
 			Chunk eChunk = event.getEntity().getLocation().getChunk();
 			checkChunk(event.getEntity(), eChunk, eType);
@@ -39,18 +37,18 @@ public class Events implements Listener {
 	}
 
 	HashMap<Chunk, Boolean> checkedChunks = new HashMap<Chunk, Boolean>();
-	
-	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType, Integer loop){
-		if (checkedChunks.containsKey(chunk)){
-		//	plugin.info("checkChunk already checked. " + chunk);
+
+	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType, Integer loop) {
+		if (checkedChunks.containsKey(chunk)) {
+			// plugin.info("checkChunk already checked. " + chunk);
 			return false;
 		}
 		checkedChunks.put(chunk, true);
-		
+
 		List<Entity> chunkTotalEntities = getChunkMobs(chunk);
 		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
-		
-		//plugin.info("checkChunk " + chunk + ", loop: " + loop);
+
+		// plugin.info("checkChunk " + chunk + ", loop: " + loop);
 
 		Entity entity;
 		if (chunkEntities.size() > plugin.config.totalMobTypePerChunk) {
@@ -58,78 +56,78 @@ public class Events implements Listener {
 			Collections.sort(chunkEntities, comparator);
 			for (int i = chunkEntities.size() - 1; i >= plugin.config.totalMobTypePerChunk; i--) {
 				entity = chunkEntities.get(i);
-	//			plugin.info("Removing mob type. " + entity.getType());
+				// plugin.info("Removing mob type. " + entity.getType());
 				entity.remove();
 			}
 		}
-		
+
 		if (chunkTotalEntities.size() > plugin.config.totalMobsPerChunk) {
 			CompareEntityAge comparator = new CompareEntityAge();
 			Collections.sort(chunkTotalEntities, comparator);
 			for (int i = chunkTotalEntities.size() - 1; i >= plugin.config.totalMobsPerChunk; i--) {
 				entity = chunkTotalEntities.get(i);
-		//			plugin.info("Removing total mob."  + entity.getType());
+				// plugin.info("Removing total mob." + entity.getType());
 				entity.remove();
 			}
 		}
-		
-		if (Config.checkSurroundingChunks == true && loop < Config.surroundingRadius){
+
+		if (Config.checkSurroundingChunks == true && loop < Config.surroundingRadius) {
 			int x = spawnedEntity.getLocation().getBlockX();
 			int z = spawnedEntity.getLocation().getBlockZ();
-			
-			int chunkSize = 16;
-			
-			Chunk north = (new Location(spawnedEntity.getWorld(), x, 1, z-chunkSize)).getChunk();
-			Chunk east = (new Location(spawnedEntity.getWorld(), x-chunkSize, 1, z)).getChunk();
-			Chunk south = (new Location(spawnedEntity.getWorld(), x, 1, z+chunkSize)).getChunk();
-			Chunk west = (new Location(spawnedEntity.getWorld(), x+chunkSize, 1, z)).getChunk();
 
-			if (checkChunk(spawnedEntity, north, eType, loop+1))
-				plugin.info("checkChunk north: true");
-			
-			if (checkChunk(spawnedEntity, east, eType, loop+1))
-				plugin.info("checkChunk east: true");
-			
-			if (checkChunk(spawnedEntity, south, eType, loop+1))
-				plugin.info("checkChunk south: true");
-			
-			if (checkChunk(spawnedEntity, west, eType, loop+1))
-				plugin.info("checkChunk west: true");
+			int chunkSize = 16;
+
+			Chunk north = (new Location(spawnedEntity.getWorld(), x, 1, z - chunkSize)).getChunk();
+			Chunk east = (new Location(spawnedEntity.getWorld(), x - chunkSize, 1, z)).getChunk();
+			Chunk south = (new Location(spawnedEntity.getWorld(), x, 1, z + chunkSize)).getChunk();
+			Chunk west = (new Location(spawnedEntity.getWorld(), x + chunkSize, 1, z)).getChunk();
+
+			checkChunk(spawnedEntity, north, eType, loop + 1);
+			checkChunk(spawnedEntity, east, eType, loop + 1);
+			checkChunk(spawnedEntity, south, eType, loop + 1);
+			checkChunk(spawnedEntity, west, eType, loop + 1);
 
 		}
-		
-		
+
 		return false;
 	}
-	
-	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType){
+
+	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType) {
 		return checkChunk(spawnedEntity, chunk, eType, 0);
 	}
-	
-	public List<Entity> getChunkMobs(Chunk chunk, EntityType mob){
+
+	public List<Entity> getChunkMobs(Chunk chunk, EntityType mob) {
 		List<Entity> entities = chunk.getWorld().getEntities();
 
 		List<Entity> chunkEntities = new ArrayList<Entity>();
-		
+
 		Entity entity;
 		for (int i = entities.size() - 1; i >= 0; i--) {
 			entity = entities.get(i);
 
-			if ((mob == null && entity.getType() != entity.getType().PLAYER) || entity.getType() == mob){
-				if (entity.getLocation().getChunk().equals(chunk)) {
+			if (entity.getLocation().getChunk().equals(chunk)) {
+				if (mob == null) {
+					if (entity.getType()  ==entity.getType().ZOMBIE || 
+						entity.getType()  ==entity.getType().SKELETON || 
+						entity.getType()  ==entity.getType().SPIDER || 
+						entity.getType()  ==entity.getType().BLAZE || 
+						entity.getType()  ==entity.getType().CAVE_SPIDER){
+						chunkEntities.add(entity);
+					}
+				} else if (entity.getType() == mob) {
+
 					chunkEntities.add(entity);
 				}
 			}
 		}
-		
-		
+
 		return chunkEntities;
 	}
-	
-	public List<Entity> getChunkMobs(Chunk chunk){
+
+	public List<Entity> getChunkMobs(Chunk chunk) {
 		return getChunkMobs(chunk, null);
 	}
-	
+
 	public class CompareEntityAge implements Comparator<Entity> {
 		@Override
 		public int compare(Entity o1, Entity o2) {
