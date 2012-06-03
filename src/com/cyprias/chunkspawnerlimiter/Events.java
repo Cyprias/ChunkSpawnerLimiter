@@ -28,6 +28,12 @@ public class Events implements Listener {
 			return;
 		}
 
+		//MobsGoneWild
+		
+		if (Config.excludedWorlds.contains(event.getLocation().getWorld().getName()))
+			return;
+		
+		
 		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
 			EntityType eType = event.getEntityType();
 			Chunk eChunk = event.getEntity().getLocation().getChunk();

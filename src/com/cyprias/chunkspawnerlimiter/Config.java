@@ -1,5 +1,7 @@
 package com.cyprias.chunkspawnerlimiter;
 
+import java.util.List;
+
 import org.bukkit.configuration.Configuration;
 
 
@@ -9,7 +11,7 @@ public class Config {
 	
 	static int totalMobTypePerChunk, totalMobsPerChunk, surroundingRadius;
 	static Boolean checkSurroundingChunks, onlyLimitSpawners;
-	
+	static  List<String> excludedWorlds;
 	public Config(ChunkSpawnerLimiter plugin) {
 		this.plugin = plugin;
 		config = plugin.getConfig().getRoot();
@@ -20,5 +22,8 @@ public class Config {
 		checkSurroundingChunks = config.getBoolean("checkSurroundingChunks");
 		surroundingRadius = config.getInt("surroundingRadius");
 		onlyLimitSpawners = config.getBoolean("onlyLimitSpawners"); 
+		
+		excludedWorlds = config.getStringList("excludedWorlds");
+		
 	}
 }
