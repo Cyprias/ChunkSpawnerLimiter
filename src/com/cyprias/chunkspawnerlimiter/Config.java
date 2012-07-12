@@ -43,9 +43,6 @@ public class Config {
 		String value;
 		ConfigurationSection info;
 		for (String mob : config.getConfigurationSection("mobs").getKeys(false)) {
-			
-			plugin.info("mob: " + mob);
-
 			watchedMobs.put(
 				mob, 
 				new mobInfo(config.getConfigurationSection("mobs").getConfigurationSection(mob).getInt("totalPerChunk"))
