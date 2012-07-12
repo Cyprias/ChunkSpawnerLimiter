@@ -36,6 +36,13 @@ public class Events implements Listener {
 		
 		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
 			EntityType eType = event.getEntityType();
+			
+			//plugin.info("eType: " + eType.toString());
+			//plugin.info("watchedMobs: " + Config.watchedMobs.containsKey(eType.toString()));
+			if (Config.watchedMobs.containsKey(eType.toString()) == false)
+				return;
+			
+			
 			Chunk eChunk = event.getEntity().getLocation().getChunk();
 			checkChunk(event.getEntity(), eChunk, eType);
 			checkedChunks.clear();
@@ -51,32 +58,27 @@ public class Events implements Listener {
 		}
 		checkedChunks.put(chunk, true);
 
-		List<Entity> chunkTotalEntities = getChunkMobs(chunk);
+		//List<Entity> chunkTotalEntities = getChunkMobs(chunk);
 		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
 
 		// plugin.info("checkChunk " + chunk + ", loop: " + loop);
 
 		Entity entity;
-		if (chunkEntities.size() > plugin.config.totalMobTypePerChunk) {
+		
+		
+		
+		
+		if (chunkEntities.size() > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
 			CompareEntityAge comparator = new CompareEntityAge();
 			Collections.sort(chunkEntities, comparator);
-			for (int i = chunkEntities.size() - 1; i >= plugin.config.totalMobTypePerChunk; i--) {
-				entity = chunkEntities.get(i);
-				// plugin.info("Removing mob type. " + entity.getType());
-				entity.remove();
+			
+			for (int i = chunkEntities.size() - 1; i >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
+			//	plugin.info("A Removing " + i + " " + chunkEntities.get(i).getTicksLived());
+				chunkEntities.get(i).remove();
 			}
 		}
-
-		if (chunkTotalEntities.size() > plugin.config.totalMobsPerChunk) {
-			CompareEntityAge comparator = new CompareEntityAge();
-			Collections.sort(chunkTotalEntities, comparator);
-			for (int i = chunkTotalEntities.size() - 1; i >= plugin.config.totalMobsPerChunk; i--) {
-				entity = chunkTotalEntities.get(i);
-				// plugin.info("Removing total mob." + entity.getType());
-				entity.remove();
-			}
-		}
-
+		
+		
 		if (Config.checkSurroundingChunks == true && loop < Config.surroundingRadius) {
 			int x = spawnedEntity.getLocation().getBlockX();
 			int z = spawnedEntity.getLocation().getBlockZ();
@@ -112,15 +114,15 @@ public class Events implements Listener {
 			entity = entities.get(i);
 
 			if (entity.getLocation().getChunk().equals(chunk)) {
-				if (mob == null) {
-					if (entity.getType()  ==entity.getType().ZOMBIE || 
-						entity.getType()  ==entity.getType().SKELETON || 
-						entity.getType()  ==entity.getType().SPIDER || 
-						entity.getType()  ==entity.getType().BLAZE || 
-						entity.getType()  ==entity.getType().CAVE_SPIDER){
-						chunkEntities.add(entity);
-					}
-				} else if (entity.getType() == mob) {
+				//if (mob == null) {
+				//	if (entity.getType()  ==entity.getType().ZOMBIE || 
+				//		entity.getType()  ==entity.getType().SKELETON || 
+				//		entity.getType()  ==entity.getType().SPIDER || 
+				//		entity.getType()  ==entity.getType().BLAZE || 
+				//		entity.getType()  ==entity.getType().CAVE_SPIDER){
+				//		chunkEntities.add(entity);
+				//	}
+				if (entity.getType() == mob) {
 
 					chunkEntities.add(entity);
 				}
@@ -130,9 +132,9 @@ public class Events implements Listener {
 		return chunkEntities;
 	}
 
-	public List<Entity> getChunkMobs(Chunk chunk) {
-		return getChunkMobs(chunk, null);
-	}
+	//public List<Entity> getChunkMobs(Chunk chunk) {
+	//	return getChunkMobs(chunk, null);
+	//}
 
 	public class CompareEntityAge implements Comparator<Entity> {
 		@Override

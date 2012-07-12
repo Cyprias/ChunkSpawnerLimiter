@@ -1,6 +1,16 @@
-totalMobsPerChunk: 100
-totalMobTypePerChunk: 25
 checkSurroundingChunks: true
 surroundingRadius: 2
 onlyLimitSpawners: true
-excludedWorlds: {}
+excludedWorlds: 
+  - NoLimitsWorld
+mobs:
+  SPIDER:
+    totalPerChunk: 20
+  SKELETON:
+    totalPerChunk: 20
+  ZOMBIE:
+    totalPerChunk: 20
+  BLAZE:
+    totalPerChunk: 20
+  CAVE_SPIDER:
+    totalPerChunk: 20
