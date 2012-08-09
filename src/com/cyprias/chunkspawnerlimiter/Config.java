@@ -13,7 +13,7 @@ public class Config {
 	private static Configuration config;
 	
 	static int surroundingRadius;
-	static Boolean checkSurroundingChunks, onlyLimitSpawners;
+	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion;
 	static  List<String> excludedWorlds;
 	
 	public static class mobInfo {
@@ -34,6 +34,8 @@ public class Config {
 		checkSurroundingChunks = config.getBoolean("checkSurroundingChunks");
 		surroundingRadius = config.getInt("surroundingRadius");
 		onlyLimitSpawners = config.getBoolean("onlyLimitSpawners"); 
+		
+		notifyOpsOfNewVersion= config.getBoolean("notifyOpsOfNewVersion");
 		
 		excludedWorlds = config.getStringList("excludedWorlds");
 		
