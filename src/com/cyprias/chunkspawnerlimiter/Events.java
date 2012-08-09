@@ -105,27 +105,23 @@ public class Events implements Listener {
 	}
 
 	public List<Entity> getChunkMobs(Chunk chunk, EntityType mob) {
-		List<Entity> entities = chunk.getWorld().getEntities();
-
 		List<Entity> chunkEntities = new ArrayList<Entity>();
 
+		/*List<Entity> entities = chunk.getWorld().getEntities();
 		Entity entity;
 		for (int i = entities.size() - 1; i >= 0; i--) {
 			entity = entities.get(i);
-
 			if (entity.getLocation().getChunk().equals(chunk)) {
-				//if (mob == null) {
-				//	if (entity.getType()  ==entity.getType().ZOMBIE || 
-				//		entity.getType()  ==entity.getType().SKELETON || 
-				//		entity.getType()  ==entity.getType().SPIDER || 
-				//		entity.getType()  ==entity.getType().BLAZE || 
-				//		entity.getType()  ==entity.getType().CAVE_SPIDER){
-				//		chunkEntities.add(entity);
-				//	}
 				if (entity.getType() == mob) {
-
 					chunkEntities.add(entity);
 				}
+			}
+		}*/
+		
+		Entity[] entities = chunk.getEntities();
+		for (int i = entities.length - 1; i >= 0; i--) {
+			if (entities[i].getType() == mob) {
+				chunkEntities.add(entities[i]);
 			}
 		}
 
