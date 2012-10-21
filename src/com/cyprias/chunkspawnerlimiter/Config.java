@@ -13,7 +13,7 @@ public class Config {
 	private static Configuration config;
 	
 	static int surroundingRadius;
-	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion;
+	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion, debuggingMode;
 	static  List<String> excludedWorlds;
 	
 	public static class mobInfo {
@@ -39,7 +39,7 @@ public class Config {
 		
 		excludedWorlds = config.getStringList("excludedWorlds");
 		
-		
+		debuggingMode = config.getBoolean("debuggingMode");
 		
 		
 		String value;

@@ -32,21 +32,22 @@ public class Events implements Listener {
 			return;
 		}
 
-		//MobsGoneWild
-		
+		// MobsGoneWild
+
 		if (Config.excludedWorlds.contains(event.getLocation().getWorld().getName()))
 			return;
-		
-		
+
 		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
 			EntityType eType = event.getEntityType();
+
+			//if (Config.debuggingMode == true) {
+			//	plugin.info("CreatureSpawnEvent eType: " + eType.toString());
+			//	plugin.info("watchedMobs: " + Config.watchedMobs.containsKey(eType.toString()));
+			//}
 			
-			//plugin.info("eType: " + eType.toString());
-			//plugin.info("watchedMobs: " + Config.watchedMobs.containsKey(eType.toString()));
 			if (Config.watchedMobs.containsKey(eType.toString()) == false)
 				return;
-			
-			
+
 			Chunk eChunk = event.getEntity().getLocation().getChunk();
 			checkChunk(event.getEntity(), eChunk, eType);
 			checkedChunks.clear();
@@ -57,32 +58,34 @@ public class Events implements Listener {
 
 	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType, Integer loop) {
 		if (checkedChunks.containsKey(chunk)) {
-			// plugin.info("checkChunk already checked. " + chunk);
+			//	plugin.info("checkChunk already checked. " + chunk);
 			return false;
 		}
 		checkedChunks.put(chunk, true);
 
-		//List<Entity> chunkTotalEntities = getChunkMobs(chunk);
+		// List<Entity> chunkTotalEntities = getChunkMobs(chunk);
 		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
 
-		// plugin.info("checkChunk " + chunk + ", loop: " + loop);
+		//	plugin.info("checkChunk " + chunk + ", loop: " + loop);
 
 		Entity entity;
 		
-		
-		
-		
-		if (chunkEntities.size() > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
+		if ((chunkEntities.size()) >= Config.watchedMobs.get(eType.toString()).totalPerChunk) {
 			CompareEntityAge comparator = new CompareEntityAge();
 			Collections.sort(chunkEntities, comparator);
+
+			//if (Config.debuggingMode == true) 
+			//	plugin.info(eType+ " @ "+chunk + ", count: " + chunkEntities.size());
 			
-			for (int i = chunkEntities.size() - 1; i >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
-			//	plugin.info("A Removing " + i + " " + chunkEntities.get(i).getTicksLived());
+			
+			for (int i = chunkEntities.size() - 1; (i+1) >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
+				if (Config.debuggingMode == true) 
+					plugin.info("Removing #" + i + " " +eType+ ", age: "+ chunkEntities.get(i).getTicksLived() +" @ "+chunkEntities.get(i).getLocation().getChunk());
+				
 				chunkEntities.get(i).remove();
 			}
 		}
-		
-		
+
 		if (Config.checkSurroundingChunks == true && loop < Config.surroundingRadius) {
 			int x = spawnedEntity.getLocation().getBlockX();
 			int z = spawnedEntity.getLocation().getBlockZ();
@@ -111,17 +114,13 @@ public class Events implements Listener {
 	public List<Entity> getChunkMobs(Chunk chunk, EntityType mob) {
 		List<Entity> chunkEntities = new ArrayList<Entity>();
 
-		/*List<Entity> entities = chunk.getWorld().getEntities();
-		Entity entity;
-		for (int i = entities.size() - 1; i >= 0; i--) {
-			entity = entities.get(i);
-			if (entity.getLocation().getChunk().equals(chunk)) {
-				if (entity.getType() == mob) {
-					chunkEntities.add(entity);
-				}
-			}
-		}*/
-		
+		/*
+		 * List<Entity> entities = chunk.getWorld().getEntities(); Entity
+		 * entity; for (int i = entities.size() - 1; i >= 0; i--) { entity =
+		 * entities.get(i); if (entity.getLocation().getChunk().equals(chunk)) {
+		 * if (entity.getType() == mob) { chunkEntities.add(entity); } } }
+		 */
+
 		Entity[] entities = chunk.getEntities();
 		for (int i = entities.length - 1; i >= 0; i--) {
 			if (entities[i].getType() == mob) {
@@ -132,9 +131,9 @@ public class Events implements Listener {
 		return chunkEntities;
 	}
 
-	//public List<Entity> getChunkMobs(Chunk chunk) {
-	//	return getChunkMobs(chunk, null);
-	//}
+	// public List<Entity> getChunkMobs(Chunk chunk) {
+	// return getChunkMobs(chunk, null);
+	// }
 
 	public class CompareEntityAge implements Comparator<Entity> {
 		@Override
