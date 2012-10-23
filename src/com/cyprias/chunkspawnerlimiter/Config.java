@@ -13,8 +13,10 @@ public class Config {
 	private static Configuration config;
 	
 	static int surroundingRadius;
-	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion, debuggingMode;
+	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion, debuggingMode, checkNewVersionOnStartup;
 	static  List<String> excludedWorlds;
+	
+	
 	
 	public static class mobInfo {
 		int totalPerChunk;
@@ -41,6 +43,7 @@ public class Config {
 		
 		debuggingMode = config.getBoolean("debuggingMode");
 		
+		checkNewVersionOnStartup = config.getBoolean("checkNewVersionOnStartup");
 		
 		String value;
 		ConfigurationSection info;

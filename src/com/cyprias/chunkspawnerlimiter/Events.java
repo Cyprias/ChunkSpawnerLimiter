@@ -9,6 +9,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -18,6 +19,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkPopulateEvent;
+
+import com.cyprias.chunkspawnerlimiter.VersionChecker.VersionCheckerEvent;
 
 public class Events implements Listener {
 	private ChunkSpawnerLimiter plugin;
@@ -40,17 +43,50 @@ public class Events implements Listener {
 		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
 			EntityType eType = event.getEntityType();
 
-			//if (Config.debuggingMode == true) {
-			//	plugin.info("CreatureSpawnEvent eType: " + eType.toString());
+			if (Config.debuggingMode == true) {
+				plugin.info("CreatureSpawnEvent eType: " + eType.toString());
 			//	plugin.info("watchedMobs: " + Config.watchedMobs.containsKey(eType.toString()));
-			//}
-			
+			}
+
 			if (Config.watchedMobs.containsKey(eType.toString()) == false)
 				return;
 
-			Chunk eChunk = event.getEntity().getLocation().getChunk();
-			checkChunk(event.getEntity(), eChunk, eType);
-			checkedChunks.clear();
+			chunkTask task = new chunkTask(this);
+			int taskID = plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, task, 0L);
+			task.setId(taskID);
+			task.setArgs(event.getEntity().getLocation().getChunk(), event.getEntity());
+
+		}
+	}
+
+	private class chunkTask implements Runnable {
+		private Events me;
+		private Object[] args;
+
+		public chunkTask(Events events) {
+			this.me = events;
+		}
+
+		public void setArgs(Object... args) {
+			this.args = args;
+		}
+
+		private int taskID;
+
+		public void setId(int n) {
+			this.taskID = n;
+		}
+
+		@Override
+		public void run() {
+			try {
+				Chunk eChunk = (Chunk) args[0];
+				Entity ent = (Entity) args[1];
+				checkChunk(ent, eChunk, ent.getType());
+				checkedChunks.clear();
+
+			} catch (Exception localException) {
+			}
 		}
 	}
 
@@ -58,7 +94,7 @@ public class Events implements Listener {
 
 	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType, Integer loop) {
 		if (checkedChunks.containsKey(chunk)) {
-			//	plugin.info("checkChunk already checked. " + chunk);
+			// plugin.info("checkChunk already checked. " + chunk);
 			return false;
 		}
 		checkedChunks.put(chunk, true);
@@ -66,22 +102,23 @@ public class Events implements Listener {
 		// List<Entity> chunkTotalEntities = getChunkMobs(chunk);
 		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
 
-		//	plugin.info("checkChunk " + chunk + ", loop: " + loop);
+		// plugin.info("checkChunk " + chunk + ", loop: " + loop);
 
 		Entity entity;
-		
+
 		if ((chunkEntities.size()) >= Config.watchedMobs.get(eType.toString()).totalPerChunk) {
 			CompareEntityAge comparator = new CompareEntityAge();
 			Collections.sort(chunkEntities, comparator);
 
-			//if (Config.debuggingMode == true) 
-			//	plugin.info(eType+ " @ "+chunk + ", count: " + chunkEntities.size());
-			
-			
-			for (int i = chunkEntities.size() - 1; (i+1) >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
-				if (Config.debuggingMode == true) 
-					plugin.info("Removing #" + i + " " +eType+ ", age: "+ chunkEntities.get(i).getTicksLived() +" @ "+chunkEntities.get(i).getLocation().getChunk());
-				
+			// if (Config.debuggingMode == true)
+			// plugin.info(eType+ " @ "+chunk + ", count: " +
+			// chunkEntities.size());
+
+			for (int i = chunkEntities.size() - 1; (i + 1) >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
+				if (Config.debuggingMode == true)
+					plugin.info("Removing #" + i + " " + eType + ", age: " + chunkEntities.get(i).getTicksLived() + " @ "
+						+ chunkEntities.get(i).getLocation().getChunk());
+
 				chunkEntities.get(i).remove();
 			}
 		}
@@ -153,4 +190,27 @@ public class Events implements Listener {
 
 	}
 
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onVersionCheckerEvent(VersionCheckerEvent event) {
+
+		if (event.getPluginName() == plugin.getName()) {
+			com.cyprias.chunkspawnerlimiter.VersionChecker.versionInfo info = event.getVersionInfo(0);
+			Object[] args = event.getArgs();
+
+			String curVersion = plugin.getDescription().getVersion();
+
+			if (args.length == 0) {
+
+				int compare = plugin.versionChecker.compareVersions(curVersion, info.getTitle());
+				// plugin.info("curVersion: " + curVersion +", title: " +
+				// info.getTitle() + ", compare: " + compare);
+				if (compare < 0) {
+					plugin.info("We're running v" + curVersion + ", v" + info.getTitle() + " is available");
+					plugin.info(info.getLink());
+				}
+
+				return;
+			}
+		}
+	}
 }

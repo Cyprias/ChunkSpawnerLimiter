@@ -17,3 +17,4 @@ mobs:
 #  IRON_GOLEM:
 #    totalPerChunk: 2
 debuggingMode: false
+checkNewVersionOnStartup: true
