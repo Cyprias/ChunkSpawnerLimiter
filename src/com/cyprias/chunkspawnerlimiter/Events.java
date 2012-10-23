@@ -28,10 +28,6 @@ public class Events implements Listener {
 
 	public Events(ChunkSpawnerLimiter plugin) {
 		this.plugin = plugin;
-		
-		chunkTask task = new chunkTask(this);
-		int taskID = plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, task, 0L, Config.checkFrequency * 20L);
-		task.setId(taskID);
 	}
 
 	
@@ -72,47 +68,9 @@ public class Events implements Listener {
 				return;
 
 			
-			for (int i = (pendingChecksNeeded.size()-1); i > 0; i--) {
-				if (pendingChecksNeeded.get(i).chunk.equals(event.getEntity().getLocation().getChunk()) && pendingChecksNeeded.get(i).entity.equals(event.getEntity()))
-					return;
-			}
-			
-			pendingChecksNeeded.add(new pendingCheck(event.getEntity().getLocation().getChunk(), event.getEntity()));
-		}
-	}
+			checkChunk(event.getEntity(), event.getEntity().getLocation().getChunk(), eType);
+			checkedChunks.clear();
 
-	private class chunkTask implements Runnable {
-		private Events me;
-		private Object[] args;
-
-		public chunkTask(Events events) {
-			this.me = events;
-		}
-
-		public void setArgs(Object... args) {
-			this.args = args;
-		}
-
-		private int taskID;
-
-		public void setId(int n) {
-			this.taskID = n;
-		}
-
-		@Override
-		public void run() {
-			try {
-				for (int i = (pendingChecksNeeded.size()-1); i > 0; i--) {
-					Chunk eChunk = pendingChecksNeeded.get(i).chunk;
-					Entity ent = pendingChecksNeeded.get(i).entity;
-					checkChunk(ent, eChunk, ent.getType());
-					checkedChunks.clear();
-					
-					pendingChecksNeeded.remove(i);
-				}
-
-			} catch (Exception localException) {
-			}
 		}
 	}
 
