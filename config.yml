@@ -18,3 +18,4 @@ mobs:
 #    totalPerChunk: 2
 debuggingMode: false
 checkNewVersionOnStartup: true
+checkFrequency: 5

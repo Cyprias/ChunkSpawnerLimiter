@@ -12,7 +12,7 @@ public class Config {
 	private ChunkSpawnerLimiter plugin;
 	private static Configuration config;
 	
-	static int surroundingRadius;
+	static int surroundingRadius, checkFrequency;
 	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion, debuggingMode, checkNewVersionOnStartup;
 	static  List<String> excludedWorlds;
 	
@@ -44,6 +44,7 @@ public class Config {
 		debuggingMode = config.getBoolean("debuggingMode");
 		
 		checkNewVersionOnStartup = config.getBoolean("checkNewVersionOnStartup");
+		checkFrequency = config.getInt("checkFrequency");
 		
 		String value;
 		ConfigurationSection info;

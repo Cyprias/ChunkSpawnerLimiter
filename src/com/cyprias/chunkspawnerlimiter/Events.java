@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -27,8 +28,27 @@ public class Events implements Listener {
 
 	public Events(ChunkSpawnerLimiter plugin) {
 		this.plugin = plugin;
+		
+		chunkTask task = new chunkTask(this);
+		int taskID = plugin.getServer().getScheduler().scheduleAsyncRepeatingTask(plugin, task, 0L, Config.checkFrequency * 20L);
+		task.setId(taskID);
 	}
 
+	
+	List<pendingCheck> pendingChecksNeeded = new ArrayList<pendingCheck>();
+	
+	public static class pendingCheck {
+		Chunk chunk;
+		Entity entity;
+		public pendingCheck(Chunk chunk2, LivingEntity entity2) {
+			this.chunk = chunk2;
+			this.entity = entity2;
+		}
+
+		
+
+	}
+	
 	@EventHandler
 	public void onCreatureSpawnEvent(CreatureSpawnEvent event) {
 		if (event.isCancelled()) {
@@ -51,11 +71,13 @@ public class Events implements Listener {
 			if (Config.watchedMobs.containsKey(eType.toString()) == false)
 				return;
 
-			chunkTask task = new chunkTask(this);
-			int taskID = plugin.getServer().getScheduler().scheduleAsyncDelayedTask(plugin, task, 0L);
-			task.setId(taskID);
-			task.setArgs(event.getEntity().getLocation().getChunk(), event.getEntity());
-
+			
+			for (int i = (pendingChecksNeeded.size()-1); i > 0; i--) {
+				if (pendingChecksNeeded.get(i).chunk.equals(event.getEntity().getLocation().getChunk()) && pendingChecksNeeded.get(i).entity.equals(event.getEntity()))
+					return;
+			}
+			
+			pendingChecksNeeded.add(new pendingCheck(event.getEntity().getLocation().getChunk(), event.getEntity()));
 		}
 	}
 
@@ -80,10 +102,14 @@ public class Events implements Listener {
 		@Override
 		public void run() {
 			try {
-				Chunk eChunk = (Chunk) args[0];
-				Entity ent = (Entity) args[1];
-				checkChunk(ent, eChunk, ent.getType());
-				checkedChunks.clear();
+				for (int i = (pendingChecksNeeded.size()-1); i > 0; i--) {
+					Chunk eChunk = pendingChecksNeeded.get(i).chunk;
+					Entity ent = pendingChecksNeeded.get(i).entity;
+					checkChunk(ent, eChunk, ent.getType());
+					checkedChunks.clear();
+					
+					pendingChecksNeeded.remove(i);
+				}
 
 			} catch (Exception localException) {
 			}
