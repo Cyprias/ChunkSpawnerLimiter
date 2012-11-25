@@ -22,7 +22,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkPopulateEvent;
 
 import com.cyprias.chunkspawnerlimiter.VersionChecker.VersionCheckerEvent;
-
 public class Events implements Listener {
 	private ChunkSpawnerLimiter plugin;
 
@@ -51,29 +50,44 @@ public class Events implements Listener {
 			return;
 		}
 
-		// MobsGoneWild
-
+		EntityType eType = event.getEntityType();
+		if (Config.debuggingMode == true){
+			plugin.info("CreatureSpawnEvent eType: " + eType.toString() + " " + event.getSpawnReason());
+		}
 		if (Config.excludedWorlds.contains(event.getLocation().getWorld().getName()))
 			return;
 
 		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
-			EntityType eType = event.getEntityType();
+			
 
 			if (Config.debuggingMode == true) {
-				plugin.info("CreatureSpawnEvent eType: " + eType.toString());
+				
 			//	plugin.info("watchedMobs: " + Config.watchedMobs.containsKey(eType.toString()));
 			}
 
 			if (Config.watchedMobs.containsKey(eType.toString()) == false)
 				return;
 
-			
-			checkChunk(event.getEntity(), event.getEntity().getLocation().getChunk(), eType);
-			checkedChunks.clear();
+			//Wait 1 tick and check the chunk so the mob that's being spawned in this event will be in the chunk when we check.
+			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new checkChunkTask(event.getEntity()));
 
 		}
 	}
 
+	public class checkChunkTask implements Runnable {
+		LivingEntity entity;
+		public checkChunkTask(LivingEntity entity) {
+			this.entity = entity;
+		}
+
+		@Override
+		public void run() {
+			checkChunk(this.entity, this.entity.getLocation().getChunk(), this.entity.getType());
+			checkedChunks.clear();
+		}
+	}
+	
+	
 	HashMap<Chunk, Boolean> checkedChunks = new HashMap<Chunk, Boolean>();
 
 	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType, Integer loop) {
@@ -83,22 +97,16 @@ public class Events implements Listener {
 		}
 		checkedChunks.put(chunk, true);
 
-		// List<Entity> chunkTotalEntities = getChunkMobs(chunk);
 		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
-
-		// plugin.info("checkChunk " + chunk + ", loop: " + loop);
 
 		Entity entity;
 
-		if ((chunkEntities.size()) >= Config.watchedMobs.get(eType.toString()).totalPerChunk) {
+		if ((chunkEntities.size()) > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
 			CompareEntityAge comparator = new CompareEntityAge();
 			Collections.sort(chunkEntities, comparator);
 
-			// if (Config.debuggingMode == true)
-			// plugin.info(eType+ " @ "+chunk + ", count: " +
-			// chunkEntities.size());
-
-			for (int i = chunkEntities.size() - 1; (i + 1) >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
+			//for (int i = chunkEntities.size() - 1; (i + 1) >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
+			for (int i = chunkEntities.size()-1; i >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
 				if (Config.debuggingMode == true)
 					plugin.info("Removing #" + i + " " + eType + ", age: " + chunkEntities.get(i).getTicksLived() + " @ "
 						+ chunkEntities.get(i).getLocation().getChunk());
@@ -144,7 +152,7 @@ public class Events implements Listener {
 
 		Entity[] entities = chunk.getEntities();
 		for (int i = entities.length - 1; i >= 0; i--) {
-			if (entities[i].getType() == mob) {
+			if (entities[i].getType().equals(mob)) {
 				chunkEntities.add(entities[i]);
 			}
 		}
