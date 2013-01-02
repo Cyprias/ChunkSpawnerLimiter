@@ -4,12 +4,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 
 public class Config {
-	private ChunkSpawnerLimiter plugin;
 	private static Configuration config;
 	
 	static int surroundingRadius;
@@ -28,8 +26,7 @@ public class Config {
 		}
 	}
 	static public HashMap<String, mobInfo> watchedMobs = new HashMap<String, mobInfo>();
-	public Config(ChunkSpawnerLimiter plugin) {
-		this.plugin = plugin;
+	public Config(JavaPlugin plugin) {
 		config = plugin.getConfig().getRoot();
 		config.options().copyDefaults(true);
 		plugin.saveConfig();
@@ -45,8 +42,7 @@ public class Config {
 		
 		checkNewVersionOnStartup = config.getBoolean("checkNewVersionOnStartup");
 
-		String value;
-		ConfigurationSection info;
+		
 		for (String mob : config.getConfigurationSection("mobs").getKeys(false)) {
 			watchedMobs.put(
 				mob, 

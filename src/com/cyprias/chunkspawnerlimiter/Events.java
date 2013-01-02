@@ -6,21 +6,15 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.world.ChunkPopulateEvent;
-
 import com.cyprias.chunkspawnerlimiter.VersionChecker.VersionCheckerEvent;
 public class Events implements Listener {
 	private ChunkSpawnerLimiter plugin;
@@ -46,47 +40,48 @@ public class Events implements Listener {
 	
 	@EventHandler
 	public void onCreatureSpawnEvent(CreatureSpawnEvent event) {
-		if (event.isCancelled()) {
+		if (event.isCancelled())
 			return;
-		}
 
 		EntityType eType = event.getEntityType();
 		if (Config.debuggingMode == true){
 			plugin.info("CreatureSpawnEvent eType: " + eType.toString() + " " + event.getSpawnReason());
 		}
+		
+		
 		if (Config.excludedWorlds.contains(event.getLocation().getWorld().getName()))
 			return;
 
 		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
-			
-
-			if (Config.debuggingMode == true) {
-				
-			//	plugin.info("watchedMobs: " + Config.watchedMobs.containsKey(eType.toString()));
-			}
-
 			if (Config.watchedMobs.containsKey(eType.toString()) == false)
 				return;
 
-			//Wait 1 tick and check the chunk so the mob that's being spawned in this event will be in the chunk when we check.
-			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new checkChunkTask(event.getEntity()));
+			if (Config.watchedMobs.get(eType.toString()).totalPerChunk == 0){
+				event.setCancelled(true);
+				return;
+			}
+			
+			
+			//if (Config.removeOldest == true){
+				checkChunk(event.getEntity(), event.getEntity().getLocation().getChunk(), event.getEntity().getType());
+				checkedChunks.clear();
+			/*}else{
+				List<Entity> chunkEntities = getChunkMobs(event.getEntity().getLocation().getChunk(), eType);
+				if ((chunkEntities.size()+1) > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
+					if (Config.debuggingMode == true)
+						plugin.info("Canceling " + eType.toString() + " from spawning at " + event.getEntity().getLocation().getChunk().toString());
+					
+					event.setCancelled(true);
+
+				}
+				
+				
+			}*/
 
 		}
 	}
 
-	public class checkChunkTask implements Runnable {
-		LivingEntity entity;
-		public checkChunkTask(LivingEntity entity) {
-			this.entity = entity;
-		}
 
-		@Override
-		public void run() {
-			checkChunk(this.entity, this.entity.getLocation().getChunk(), this.entity.getType());
-			checkedChunks.clear();
-		}
-	}
-	
 	
 	HashMap<Chunk, Boolean> checkedChunks = new HashMap<Chunk, Boolean>();
 
@@ -99,20 +94,20 @@ public class Events implements Listener {
 
 		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
 
-		Entity entity;
 
-		if ((chunkEntities.size()) > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
+		if ((chunkEntities.size()+1) > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
 			CompareEntityAge comparator = new CompareEntityAge();
 			Collections.sort(chunkEntities, comparator);
 
-			//for (int i = chunkEntities.size() - 1; (i + 1) >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
-			for (int i = chunkEntities.size()-1; i >= Config.watchedMobs.get(eType.toString()).totalPerChunk; i--) {
+			int end = (loop==0) ? Config.watchedMobs.get(eType.toString()).totalPerChunk -1 : Config.watchedMobs.get(eType.toString()).totalPerChunk;
+			for (int i = (chunkEntities.size()-1); i >= end; i--) {
 				if (Config.debuggingMode == true)
 					plugin.info("Removing #" + i + " " + eType + ", age: " + chunkEntities.get(i).getTicksLived() + " @ "
 						+ chunkEntities.get(i).getLocation().getChunk());
 
 				chunkEntities.get(i).remove();
 			}
+				
 		}
 
 		if (Config.checkSurroundingChunks == true && loop < Config.surroundingRadius) {

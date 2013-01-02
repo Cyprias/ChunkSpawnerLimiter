@@ -24,10 +24,8 @@ public class ChunkSpawnerLimiter extends JavaPlugin {
 		    metrics.start();
 		} catch (IOException e) {}
 		
-		this.versionChecker = new VersionChecker(this, "http://dev.bukkit.org/server-mods/chunkspawnerlimiter/files.rss");
-		
 		if (Config.checkNewVersionOnStartup == true)
-			this.versionChecker.retreiveVersionInfo();
+			VersionChecker.retreiveVersionInfo(this, "http://dev.bukkit.org/server-mods/chunkspawnerlimiter/files.rss");
 		
 		info(String.format(stPluginEnabled, pluginName, this.getDescription().getVersion()));
 	}
