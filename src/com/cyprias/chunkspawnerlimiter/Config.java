@@ -1,5 +1,6 @@
 package com.cyprias.chunkspawnerlimiter;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
@@ -28,8 +29,12 @@ public class Config {
 	static public HashMap<String, mobInfo> watchedMobs = new HashMap<String, mobInfo>();
 	public Config(JavaPlugin plugin) {
 		config = plugin.getConfig().getRoot();
-		config.options().copyDefaults(true);
-		plugin.saveConfig();
+
+		if (!(new File(plugin.getDataFolder(), "config.yml").exists())){
+			config.options().copyDefaults(true);
+			plugin.saveConfig();
+		}
+		
 		checkSurroundingChunks = config.getBoolean("checkSurroundingChunks");
 		surroundingRadius = config.getInt("surroundingRadius");
 		onlyLimitSpawners = config.getBoolean("onlyLimitSpawners"); 
