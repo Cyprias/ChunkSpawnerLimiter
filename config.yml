@@ -1,9 +1,18 @@
 checkSurroundingChunks: true
 surroundingRadius: 2
 onlyLimitSpawners: true
-excludedWorlds: 
+excludedWorlds:
   - NoLimitsWorld
+
 mobs:
+#  ANIMAL:
+#    totalPerChunk: 30
+#  MONSTER:
+#    totalPerChunk: 20
+#  WATER_MOB:
+#    totalPerChunk: 5
+#  AMBIENT:
+#    totalPerChunk: 5
   GIANT:
     totalPerChunk: 5
 #  SKELETON:

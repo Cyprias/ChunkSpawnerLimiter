@@ -1,153 +1,245 @@
 package com.cyprias.chunkspawnerlimiter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
+import com.cyprias.chunkspawnerlimiter.compare.EntityCompare;
+import com.cyprias.chunkspawnerlimiter.compare.EntityTypeCompare;
+import com.cyprias.chunkspawnerlimiter.compare.MobGroupCompare;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.World;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import com.cyprias.chunkspawnerlimiter.VersionChecker.VersionCheckerEvent;
-public class Events implements Listener {
-	private ChunkSpawnerLimiter plugin;
 
+public class Events implements Listener {
+
+    // Inner class for sorting a collection of entities by age.
+    public class CompareEntityAge implements Comparator<Entity> {
+        @Override
+        public int compare(Entity o1, Entity o2) {
+            double age1 = o1.getTicksLived();
+            double age2 = o2.getTicksLived();
+
+            if (age1 > age2) {
+                return +1;
+            } else if (age1 < age2) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    // Reference back to the actual plugin.
+    private ChunkSpawnerLimiter plugin;
+
+    // Used to make sure the same chunk is not checked multiple times during the same operation.
+    private HashMap<Chunk, Boolean> checkedChunks = new HashMap<Chunk, Boolean>();
+
+    // Constructor
 	public Events(ChunkSpawnerLimiter plugin) {
 		this.plugin = plugin;
 	}
 
-	
-	List<pendingCheck> pendingChecksNeeded = new ArrayList<pendingCheck>();
-	
-	public static class pendingCheck {
-		Chunk chunk;
-		Entity entity;
-		public pendingCheck(Chunk chunk2, LivingEntity entity2) {
-			this.chunk = chunk2;
-			this.entity = entity2;
-		}
-
-		
-
-	}
-	
 	@EventHandler
+    // Handle creature spawns.
 	public void onCreatureSpawnEvent(CreatureSpawnEvent event) {
-		if (event.isCancelled())
+		// If something else has already cancelled the event, then do nothing.
+        if (event.isCancelled())
 			return;
 
-		EntityType eType = event.getEntityType();
+        // Capture the entity
+        LivingEntity entity = event.getEntity();
 		if (Config.debuggingMode == true){
-			plugin.info("CreatureSpawnEvent eType: " + eType.toString() + " " + event.getSpawnReason());
+			plugin.info("CreatureSpawnEvent eType: " + entity.getType().toString() + " " + event.getSpawnReason());
 		}
-		
-		
-		if (Config.excludedWorlds.contains(event.getLocation().getWorld().getName()))
+
+        // Stop processing quickly if this spawn type is not valid.
+        if (Config.onlyLimitSpawners == true && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
+            return;
+        }
+
+        // Stop processing quickly if this world is excluded from limits.
+		if (Config.excludedWorlds.contains(event.getLocation().getWorld().getName())) {
+            return;
+        }
+
+        // Get string representation of the Mob type and mob group.
+        String mobLabel = entity.getType().toString();
+        String mobGroup = MobGroupCompare.getMobGroup(entity);
+
+        // TODO: There would be some performance benefit to doing some of this work up front instead of on each event.
+        //       An Explicit list of supported mobs and their group would need to be maintained, though.
+
+        // Get the appropriate limit. The type of limit in use will dictate exactly how we will compare
+        // existing entities against the spawned entity.
+        int limit;
+        EntityCompare entityComparator;
+
+        // See if we have a configuration under the mob label.
+        if (Config.watchedMobs.containsKey(mobLabel)) {
+            // Record the limit.
+            limit = Config.watchedMobs.get(mobLabel).totalPerChunk;
+
+            // If we ALSO have a mob group limit, then we need to use the smaller of the two limits.
+            if (Config.watchedMobs.containsKey(mobGroup) && Config.watchedMobs.get(mobGroup).totalPerChunk < limit) {
+                // The mob group limit is lower, we will use that.
+                limit = Config.watchedMobs.get(mobGroup).totalPerChunk;
+
+                // We will make comparisons based on the mob group.
+                entityComparator = new MobGroupCompare(mobGroup);
+            }
+            else {
+                // Mob group limit doesn't exist or doesn't apply. Either way, we will be using the
+                // actual entity type to for comparisons.
+                entityComparator = new EntityTypeCompare(entity.getType());
+            }
+
+        }
+        // No mob-specific limit. Check for a mob group limit.
+        else if (Config.watchedMobs.containsKey(mobGroup)) {
+            // Use the mob group limit and plan to compare based on mob group.
+            limit = Config.watchedMobs.get(mobGroup).totalPerChunk;
+            entityComparator = new MobGroupCompare(mobGroup);
+        }
+        else {
+            // No relevant limit. Bail.
+            return;
+        }
+
+//        plugin.info("limit: " + limit);
+
+        // If our limit is configured to zero (or less), then we should automatically avoid the spawn.
+		if (limit < 1) {
+            // Cancel the spawn.
+            event.setCancelled(true);
 			return;
+        }
 
-		if (Config.onlyLimitSpawners == false || event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
-			if (Config.watchedMobs.containsKey(eType.toString()) == false)
-				return;
+        // There is a limit so we need to round up all the mobs in the configured area around the
+        // spawn chunk.
+        List<Entity> collectedMobs = new ArrayList<Entity>();
 
-			if (Config.watchedMobs.get(eType.toString()).totalPerChunk == 0){
-				event.setCancelled(true);
-				return;
-			}
-			
-			
-			//if (Config.removeOldest == true){
-				checkChunk(event.getEntity(), event.getEntity().getLocation().getChunk(), event.getEntity().getType());
-				checkedChunks.clear();
-			/*}else{
-				List<Entity> chunkEntities = getChunkMobs(event.getEntity().getLocation().getChunk(), eType);
-				if ((chunkEntities.size()+1) > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
-					if (Config.debuggingMode == true)
-						plugin.info("Canceling " + eType.toString() + " from spawning at " + event.getEntity().getLocation().getChunk().toString());
-					
-					event.setCancelled(true);
+        collectedMobs = collectMobs(entity.getLocation().getChunk(),
+            entityComparator,
+            Config.checkSurroundingChunks ? Config.surroundingRadius : 0,
+            (Config.removeOldest ? -1 : limit));
 
-				}
-				
-				
-			}*/
+        // See if we are under the limit.
+        if (collectedMobs.size() < limit) {
+            // We are under the limit... okay to spawn.
+//            plugin.info("Okay to spawn");
+            return;
+        }
 
-		}
+        // We are NOT under the limit.  Decide how to handle the new spawn.
+        if (Config.removeOldest) {
+            // We are going to remove the oldest mob(s) to make room for the new one.
+
+            // Sort all the mobs by age.
+            CompareEntityAge comparator = new CompareEntityAge();
+			Collections.sort(collectedMobs, comparator);
+
+            // Remove all excess mobs.  The goal is to have one less than the limit so that there is
+            // room for the new one.
+            for (Entity oldMob: collectedMobs.subList(limit - 1, collectedMobs.size() - 1)) {
+//                plugin.info("removed " + oldMob.toString());
+                oldMob.remove();
+            }
+        }
+        else {
+            // Simply stop the spawn.
+//            plugin.info("prevented spawn");
+            event.setCancelled(true);
+            return;
+        }
 	}
 
+    /**
+     * Finds all mobs in and around the specified center-chunk and returns them in a list.
+     *
+     * @param centerChunk      Chunk to start collecting mobs from.
+     * @param entityComparator Only entities identified as "similar" by this will be collected.
+     * @param maxRadius        The number of chunks outward from the centerChunk to look in when collecting Mobs.
+     * @param haltAfter        Stop counting if/when this value is exceeded. A value of -1 will collect all mobs. Since mobs
+     *                         are gathered per chunk, the number gathered may be larger than this value by an indeterminate amount.
+     * @return
+     */
+    public List<Entity> collectMobs(Chunk centerChunk, EntityCompare entityComparator, int maxRadius, int haltAfter)
+    {
+        World world = centerChunk.getWorld();
 
-	
-	HashMap<Chunk, Boolean> checkedChunks = new HashMap<Chunk, Boolean>();
+        Integer minX, maxX, minZ, maxZ, currentX, currentZ;
+        List<Entity> allMobs = new ArrayList<Entity>();
 
-	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType, Integer loop) {
-		if (checkedChunks.containsKey(chunk)) {
-			// plugin.info("checkChunk already checked. " + chunk);
-			return false;
-		}
-		checkedChunks.put(chunk, true);
+        // Check the center chunk.
+        allMobs.addAll(getChunkMobs(world.getChunkAt(centerChunk.getX(), centerChunk.getZ()), entityComparator));
+//        plugin.info("Checking center: " + centerChunk.getX() + " " + centerChunk.getZ());
 
-		List<Entity> chunkEntities = getChunkMobs(chunk, eType);
+        int currentRadius = 1;
+        collectionLoop:
+        while (maxRadius >= currentRadius && (haltAfter == -1 || allMobs.size() < haltAfter)) {
+
+//            plugin.info("radius:" + currentRadius + "/" + maxRadius);
+
+            // Upper left -- start here.
+            currentX = minX = (centerChunk.getX() - currentRadius);
+            currentZ = minZ = (centerChunk.getZ() - currentRadius);
+
+            // Bottom right.
+            maxX = centerChunk.getX() + currentRadius;
+            maxZ = centerChunk.getZ() + currentRadius;
+
+            // Top - increase X, not Y
+            for (; currentX <= maxX && (haltAfter == -1 || allMobs.size() < haltAfter); currentX++) {
+                // get mobs for chunk @ currentX,currentY
+                allMobs.addAll(getChunkMobs(world.getChunkAt(currentX, currentZ), entityComparator));
+//                plugin.info("checking:" + currentX + " " + currentZ);
+            }
+
+            // Right - increase Z, not X
+            currentX = maxX;
+            for (currentZ += 1; currentZ <= maxZ && (haltAfter == -1 || allMobs.size() < haltAfter); currentZ++) {
+                // get mobs for chunk @ currentX,currentY
+                allMobs.addAll(getChunkMobs(world.getChunkAt(currentX, currentZ), entityComparator));
+//                plugin.info("checking:" + currentX + " " + currentZ + "(" + allMobs.size() + ")");
+            }
+
+            // Bottom - decrease X, not Z
+            currentZ = maxZ;
+            for (currentX -= 1; currentX >= minX && (haltAfter == -1 || allMobs.size() < haltAfter); currentX--) {
+                // get mobs for chunk @ currentX,currentY
+                allMobs.addAll(getChunkMobs(world.getChunkAt(currentX, currentZ), entityComparator));
+//                plugin.info("checking:" + currentX + " " + currentZ + "(" + allMobs.size() + ")");
+            }
 
 
-		if ((chunkEntities.size()+1) > Config.watchedMobs.get(eType.toString()).totalPerChunk) {
-			CompareEntityAge comparator = new CompareEntityAge();
-			Collections.sort(chunkEntities, comparator);
+            // Left - decrease Z, not X
+            // Increase Z to prevent duplication of the other block.
+            // Don't go all the way back to minZ -- we counted the chunk at the beginning.
+            currentX = minX;
+            for (currentZ -= 1; currentZ > minZ && (haltAfter == -1 || allMobs.size() < haltAfter); currentZ--) {
+                // get mobs for chunk @ currentX,currentY
+                allMobs.addAll(getChunkMobs(world.getChunkAt(currentX, currentZ), entityComparator));
+//                plugin.info("checking:" + currentX + " " + currentZ + "(" + allMobs.size() + ")");
+            }
 
-			int end = (loop==0) ? Config.watchedMobs.get(eType.toString()).totalPerChunk -1 : Config.watchedMobs.get(eType.toString()).totalPerChunk;
-			for (int i = (chunkEntities.size()-1); i >= end; i--) {
-				if (Config.debuggingMode == true)
-					plugin.info("Removing #" + i + " " + eType + ", age: " + chunkEntities.get(i).getTicksLived() + " @ "
-						+ chunkEntities.get(i).getLocation().getChunk());
+            currentRadius++;
+        }
 
-				chunkEntities.get(i).remove();
-			}
-				
-		}
+        plugin.info("matching mob count:" + allMobs.size());
+        return allMobs;
+    }
 
-		if (Config.checkSurroundingChunks == true && loop < Config.surroundingRadius) {
-			int x = spawnedEntity.getLocation().getBlockX();
-			int z = spawnedEntity.getLocation().getBlockZ();
-
-			int chunkSize = 16;
-
-			Chunk north = (new Location(spawnedEntity.getWorld(), x, 1, z - chunkSize)).getChunk();
-			Chunk east = (new Location(spawnedEntity.getWorld(), x - chunkSize, 1, z)).getChunk();
-			Chunk south = (new Location(spawnedEntity.getWorld(), x, 1, z + chunkSize)).getChunk();
-			Chunk west = (new Location(spawnedEntity.getWorld(), x + chunkSize, 1, z)).getChunk();
-
-			checkChunk(spawnedEntity, north, eType, loop + 1);
-			checkChunk(spawnedEntity, east, eType, loop + 1);
-			checkChunk(spawnedEntity, south, eType, loop + 1);
-			checkChunk(spawnedEntity, west, eType, loop + 1);
-
-		}
-
-		return false;
-	}
-
-	public boolean checkChunk(Entity spawnedEntity, Chunk chunk, EntityType eType) {
-		return checkChunk(spawnedEntity, chunk, eType, 0);
-	}
-
-	public List<Entity> getChunkMobs(Chunk chunk, EntityType mob) {
+	public List<Entity> getChunkMobs(Chunk chunk, EntityCompare entityComparator) {
 		List<Entity> chunkEntities = new ArrayList<Entity>();
-
-		/*
-		 * List<Entity> entities = chunk.getWorld().getEntities(); Entity
-		 * entity; for (int i = entities.size() - 1; i >= 0; i--) { entity =
-		 * entities.get(i); if (entity.getLocation().getChunk().equals(chunk)) {
-		 * if (entity.getType() == mob) { chunkEntities.add(entity); } } }
-		 */
 
 		Entity[] entities = chunk.getEntities();
 		for (int i = entities.length - 1; i >= 0; i--) {
-			if (entities[i].getType().equals(mob)) {
+            if (entityComparator.isSimilar(entities[i])) {
 				chunkEntities.add(entities[i]);
 			}
 		}
@@ -155,27 +247,6 @@ public class Events implements Listener {
 		return chunkEntities;
 	}
 
-	// public List<Entity> getChunkMobs(Chunk chunk) {
-	// return getChunkMobs(chunk, null);
-	// }
-
-	public class CompareEntityAge implements Comparator<Entity> {
-		@Override
-		public int compare(Entity o1, Entity o2) {
-			// TODO Auto-generated method stub
-			double age1 = o1.getTicksLived();
-			double age2 = o2.getTicksLived();
-
-			if (age1 > age2) {
-				return +1;
-			} else if (age1 < age2) {
-				return -1;
-			} else {
-				return 0;
-			}
-		}
-
-	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onVersionCheckerEvent(VersionCheckerEvent event) {
