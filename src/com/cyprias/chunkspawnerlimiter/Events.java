@@ -230,7 +230,7 @@ public class Events implements Listener {
             currentRadius++;
         }
 
-        plugin.info("matching mob count:" + allMobs.size());
+//        plugin.info("matching mob count:" + allMobs.size());
         return allMobs;
     }
 
