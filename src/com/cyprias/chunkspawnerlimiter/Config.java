@@ -10,22 +10,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Config {
 	private static Configuration config;
-	
+
 	static int surroundingRadius;
-	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion, debuggingMode, checkNewVersionOnStartup;
+	static Boolean checkSurroundingChunks, onlyLimitSpawners, notifyOpsOfNewVersion, debuggingMode, checkNewVersionOnStartup, removeOldest;
 	static  List<String> excludedWorlds;
-	
-	
-	
+
 	public static class mobInfo {
 		int totalPerChunk;
-	//	boolean removeOldest;
 
 		public mobInfo(int totalPerChunk) {
 			this.totalPerChunk = totalPerChunk;
-			//this.removeOldest = removeOldest;
 		}
 	}
+
 	static public HashMap<String, mobInfo> watchedMobs = new HashMap<String, mobInfo>();
 	public Config(JavaPlugin plugin) {
 		config = plugin.getConfig().getRoot();
@@ -34,23 +31,24 @@ public class Config {
 			config.options().copyDefaults(true);
 			plugin.saveConfig();
 		}
-		
+
 		checkSurroundingChunks = config.getBoolean("checkSurroundingChunks");
 		surroundingRadius = config.getInt("surroundingRadius");
-		onlyLimitSpawners = config.getBoolean("onlyLimitSpawners"); 
-		
+		onlyLimitSpawners = config.getBoolean("onlyLimitSpawners");
+
 		notifyOpsOfNewVersion= config.getBoolean("notifyOpsOfNewVersion");
-		
+
 		excludedWorlds = config.getStringList("excludedWorlds");
-		
+
 		debuggingMode = config.getBoolean("debuggingMode");
-		
+
 		checkNewVersionOnStartup = config.getBoolean("checkNewVersionOnStartup");
 
-		
+        removeOldest = config.getBoolean("removeOldest", true);
+
 		for (String mob : config.getConfigurationSection("mobs").getKeys(false)) {
 			watchedMobs.put(
-				mob, 
+				mob,
 				new mobInfo(config.getConfigurationSection("mobs").getConfigurationSection(mob).getInt("totalPerChunk"))
 			);
 		}
