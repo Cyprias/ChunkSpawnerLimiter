@@ -28,11 +28,36 @@ properties:
   notify-players: false
 
 entities:
-  ANIMAL: 30
-  MONSTER: 20
-  WATER_MOB: 5
-  AMBIENT: 5
-  ZOMBIE: 5
+  ANIMAL: 50
+  MONSTER: 50
+#  WATER_MOB: 5
+#  AMBIENT: 5
+#  CREEPER: 10
+#  SHEEP: 10
+#  OCELOT: 10
+#  GIANT: 10
+#  SLIME: 10
+#  GHAST: 10
+#  PIG_ZOMBIE: 10
+#  ENDERMAN: 10
+#  SILVERFISH: 10
+#  MAGMA_CUBE: 10
+#  CHICKEN: 10
+#  SQUID: 10
+#  WOLF: 10
+#  MUSHROOM_COW: 10
+#  SNOWMAN: 10
+#  VILLAGER: 10
+#  SPIDER: 10
+#  SKELETON: 10
+#  ZOMBIE: 10
+#  BLAZE: 10
+#  CAVE_SPIDER: 10
+#  IRON_GOLEM: 10
+#  WITHER: 10
+#  PIG: 10
+#  HORSE: 10
+#  WITCH: 10
 
 # Exclude these worlds from limits.  
 excluded-worlds: []
