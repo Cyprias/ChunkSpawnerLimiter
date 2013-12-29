@@ -1,0 +1,41 @@
+config-version: 1
+properties:
+  # Show debug messages.
+  debug-messages: false
+
+  # Help the developer know how popular the plugin is.
+  use-metrics: true
+  
+  # Check a chunk upon load.
+  check-chunk-load: false
+  
+  # Check a chunk upon unload.
+  check-chunk-unload: false
+  
+  # Check a chunk when a mob spawns.
+  watch-creature-spawns: true
+  
+  # Radius of surrounding chunks to check.
+  check-surrounding-chunks: 1
+  
+  # When a chunk is loaded, check it every so often. 
+  active-inspections: true
+  
+  # How often, in seconds, to check the chunk.
+  inspection-frequency: 300
+  
+  # Notify players in that chunk if stuff has been culled. 
+  notify-players: false
+
+entities:
+  ANIMAL: 30
+  MONSTER: 20
+  WATER_MOB: 5
+  AMBIENT: 5
+  ZOMBIE: 5
+
+# Exclude these worlds from limits.  
+excluded-worlds: []
+
+messages:
+  removedEntites: "&7Removed %s %s in your chunk."
