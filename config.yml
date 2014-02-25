@@ -6,19 +6,19 @@ properties:
   # Help the developer know how popular the plugin is.
   use-metrics: true
   
-  # Check a chunk upon load.
+  # Check a chunk upon load (ChunkLoadEvent).
   check-chunk-load: false
   
-  # Check a chunk upon unload.
+  # Check a chunk upon unload (ChunkUnloadEvent).
   check-chunk-unload: false
   
-  # Check a chunk when a mob spawns.
+  # Check a chunk when a mob spawns (CreatureSpawnEvent).
   watch-creature-spawns: true
   
   # Radius of surrounding chunks to check.
   check-surrounding-chunks: 1
   
-  # When a chunk is loaded, check it every so often. 
+  # When a chunk is loaded, recheck it periodically. 
   active-inspections: true
   
   # How often, in seconds, to check the chunk.
