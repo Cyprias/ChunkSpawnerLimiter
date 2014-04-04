@@ -5,8 +5,10 @@ import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
 import com.cyprias.ChunkSpawnerLimiter.Config;
+import com.cyprias.ChunkSpawnerLimiter.Logger;
 
 public class EntityListener implements Listener {
 
@@ -18,6 +20,15 @@ public class EntityListener implements Listener {
 		if (Config.getBoolean("properties.watch-creature-spawns") == false)
 			return;
 
+		String reason = e.getSpawnReason().toString();
+		
+		if (!Config.getBoolean("spawn-reasons."+reason) || Config.getBoolean("spawn-reasons."+reason) == false){
+			Logger.debug("Igonring " + e.getEntity().getType().toString() + " due to spawnreason " + reason);
+			return;
+		}
+		
+		//CreatureSpawnEvent.SpawnReason.
+		
 		// LivingEntity ent = e.getEntity();
 
 		// EntityType t = ent.getType();

@@ -27,6 +27,28 @@ properties:
   # Notify players in that chunk if stuff has been culled. 
   notify-players: false
 
+# Spawn reasons to cull on.
+spawn-reasons:
+  NATURAL: true
+  JOCKEY: true
+  CHUNK_GEN: true
+  SPAWNER: true
+  EGG: true
+  SPAWNER_EGG: true
+  LIGHTNING: true
+  # These are deprecated, might not work in the future. 
+  BED: true
+  BUILD_SNOWMAN: true
+  BUILD_IRONGOLEM: true
+  BUILD_WITHER: true
+  VILLAGE_DEFENSE: true
+  VILLAGE_INVASION: true
+  BREEDING: true
+  SLIME_SPLIT: true
+  REINFORCEMENTS: true
+  CUSTOM: true
+  DEFAULT: true
+
 entities:
   ANIMAL: 50
   MONSTER: 50
