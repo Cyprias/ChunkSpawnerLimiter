@@ -39,6 +39,11 @@ public class MobGroupCompare implements EntityCompare {
                         return "WATER_MOB";
                 }
 
+                if (entity instanceof NPC) {
+                    // Villager
+                    return "NPC";
+                }
+                
                 // Anything else.
                 return "OTHER";
         }

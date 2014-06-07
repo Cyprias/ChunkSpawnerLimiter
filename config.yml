@@ -52,6 +52,8 @@ spawn-reasons:
 entities:
   ANIMAL: 50
   MONSTER: 50
+  NPC: 50
+  OTHER: 500
 #  WATER_MOB: 5
 #  AMBIENT: 5
 #  CREEPER: 10
