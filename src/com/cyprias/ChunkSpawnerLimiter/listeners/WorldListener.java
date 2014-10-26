@@ -51,6 +51,7 @@ public class WorldListener implements Listener {
 
 	@EventHandler
 	public void onChunkLoadEvent(final ChunkLoadEvent e) {
+		Logger.debug("ChunkLoadEvent " + e.getChunk().getX() + " " + e.getChunk().getZ());
 		if (Config.getBoolean("properties.active-inspections")){
 			inspectTask task = new inspectTask(e.getChunk());
 			int taskID = Plugin.scheduleSyncRepeatingTask(task, Config.getInt("properties.inspection-frequency") * 20L);
@@ -59,12 +60,14 @@ public class WorldListener implements Listener {
 			chunkTasks.put(e.getChunk(), taskID);
 		}
 
-		
 		if (Config.getBoolean("properties.check-chunk-load"))
 			CheckChunk(e.getChunk());
 	}
 
+	@EventHandler
 	public void onChunkUnloadEvent(final ChunkUnloadEvent e) {
+		Logger.debug("ChunkUnloadEvent " + e.getChunk().getX() + " " + e.getChunk().getZ());
+		
 		if (chunkTasks.containsKey(e.getChunk())){
 			Plugin.getInstance().getServer().getScheduler().cancelTask(chunkTasks.get(e.getChunk()));
 			chunkTasks.remove(e.getChunk());
