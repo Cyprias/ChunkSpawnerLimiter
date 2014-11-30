@@ -81,7 +81,7 @@ public class WorldListener implements Listener {
 
 	public static void CheckChunk(Chunk c) {
         // Stop processing quickly if this world is excluded from limits.
-		if (Config.getStringList("excludedWorlds").contains(c.getWorld().getName())) {
+		if (Config.getStringList("excluded-worlds").contains(c.getWorld().getName())) {
             return;
         }
 		
