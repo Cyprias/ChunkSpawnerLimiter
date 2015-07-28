@@ -1,9 +1,7 @@
 package com.cyprias.ChunkSpawnerLimiter;
 
 import java.io.IOException;
-import java.util.HashMap;
 
-import org.bukkit.Location;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,8 +15,6 @@ public class Plugin extends JavaPlugin {
 	private static Plugin instance = null;
 	public static String chatPrefix = "&4[&bCSL&4]&r ";
 
-	public static HashMap<String, Location> deaths = new HashMap<String, Location>();
-
 	@Override
 	public void onEnable() {
 		instance = this;
@@ -26,14 +22,11 @@ public class Plugin extends JavaPlugin {
 		// Save default config if it does not exist.
 		saveDefaultConfig();
 
-		// Check if the config on disk is missing any settings, tell console if
-		// so.
+		// Check if the config on disk is missing any settings, tell console if so.
 		try {
 			Config.checkForMissingProperties();
-		} catch (IOException e4) {
-			e4.printStackTrace();
-		} catch (InvalidConfigurationException e4) {
-			e4.printStackTrace();
+		} catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
 		}
 
 		// Register our event listener.
