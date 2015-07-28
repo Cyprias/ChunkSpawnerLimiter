@@ -1,11 +1,15 @@
 package com.cyprias.ChunkSpawnerLimiter;
 
+import java.util.regex.Pattern;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class ChatUtils {
+
+	private static final Pattern STRIP_COLOR_CODES = Pattern.compile("(?i)(&|" + String.valueOf(ChatColor.COLOR_CHAR) + ")[0-9A-FK-OR]", Pattern.CASE_INSENSITIVE);
 
 	public static void broadcast(String format, Object... args) {
 		broadcast(String.format(format, args));
@@ -73,27 +77,12 @@ public class ChatUtils {
 
 	// replace color codes with the colors
 	public static final String replaceColorCodes(String mess) {
-		return mess.replaceAll("(&([" + colorCodes + "]))", "\u00A7$2");
+		return ChatColor.translateAlternateColorCodes('&', mess);
 	}
 
 	// get rid of color codes
 	public static final String cleanColorCodes(String mess) {
-		return mess.replaceAll("(&([" + colorCodes + "]))", "");
+		return STRIP_COLOR_CODES.matcher(mess).replaceAll("");
 	}
 
-	private static final String colorCodes;
-
-	static {
-		String string = "";
-		for (ChatColor color : ChatColor.values()) {
-			char c = color.getChar();
-			if (!Character.isLetter(c)) {
-				string += c;
-			} else {
-				string += Character.toUpperCase(c);
-				string += Character.toLowerCase(c);
-			}
-		}
-		colorCodes = string;
-	}
 }

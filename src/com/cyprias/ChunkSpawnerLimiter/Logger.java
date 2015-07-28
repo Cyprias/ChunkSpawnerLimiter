@@ -1,6 +1,5 @@
 package com.cyprias.ChunkSpawnerLimiter;
 
-import org.bukkit.ChatColor;
 
 
 public class Logger {
@@ -24,7 +23,7 @@ public class Logger {
 
 	public static void debug(String mess) {
 		if (Config.getBoolean("properties.debug-messages"))
-			logger.info(cleanColorCodes(getLogPrefix() + "[Debug] " + mess));
+			logger.info(ChatUtils.cleanColorCodes(getLogPrefix() + "[Debug] " + mess));
 	}
 
 	public static void infoRaw(String mess) {
@@ -71,29 +70,4 @@ public class Logger {
 		return String.format(Plugin.chatPrefix);
 	}
 
-	// replace color codes with the colors
-	public static final String replaceColorCodes(String mess) {
-		return mess.replaceAll("(&([" + colorCodes + "]))", "\u00A7$2");
-	}
-
-	// get rid of color codes
-	public static final String cleanColorCodes(String mess) {
-		return mess.replaceAll("(&([" + colorCodes + "]))", "");
-	}
-
-	private static final String colorCodes;
-
-	static {
-		String string = "";
-		for (ChatColor color : ChatColor.values()) {
-			char c = color.getChar();
-			if (!Character.isLetter(c)) {
-				string += c;
-			} else {
-				string += Character.toUpperCase(c);
-				string += Character.toLowerCase(c);
-			}
-		}
-		colorCodes = string;
-	}
 }
