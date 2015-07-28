@@ -1,9 +1,14 @@
 package com.cyprias.ChunkSpawnerLimiter;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Config {
 
@@ -32,8 +37,14 @@ public class Config {
 	}
 
 	public static void checkForMissingProperties() throws IOException, InvalidConfigurationException {
-		YML diskConfig = new YML(Plugin.getInstance().getDataFolder(), "config.yml");
-		YML defaultConfig = new YML(Plugin.getInstance().getResource("config.yml"));
+		File configFile = new File(Plugin.getInstance().getDataFolder(), "config.yml");
+		if (!configFile.exists()) {
+			throw new FileNotFoundException(configFile.getPath() + " does not exist!");
+		}
+		YamlConfiguration diskConfig = YamlConfiguration.loadConfiguration(new File(Plugin.getInstance().getDataFolder(), "config.yml"));
+		BufferedReader buffered = new BufferedReader(new InputStreamReader(Plugin.getInstance().getResource("config.yml")));
+		YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(buffered);
+		buffered.close();
 
 		for (String property : defaultConfig.getKeys(true)) {
 			if (!diskConfig.contains(property))

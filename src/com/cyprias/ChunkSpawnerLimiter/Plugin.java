@@ -1,7 +1,5 @@
 package com.cyprias.ChunkSpawnerLimiter;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -25,20 +23,8 @@ public class Plugin extends JavaPlugin {
 	public void onEnable() {
 		instance = this;
 
-		// Check if config.yml exists on disk, copy it over if not. This keeps
-		// our comments intact.
-		if (!(new File(getDataFolder(), "config.yml").exists())) {
-			Logger.info(chatPrefix + "Copying config.yml to disk.");
-			try {
-				YML.toFile(getResource("config.yml"), getDataFolder(), "config.yml");
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				return;
-			} catch (IOException e) {
-				e.printStackTrace();
-				return;
-			}
-		}
+		// Save default config if it does not exist.
+		saveDefaultConfig();
 
 		// Check if the config on disk is missing any settings, tell console if
 		// so.
