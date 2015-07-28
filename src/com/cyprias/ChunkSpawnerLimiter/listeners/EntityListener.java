@@ -5,7 +5,6 @@ import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 
 import com.cyprias.ChunkSpawnerLimiter.Config;
 import com.cyprias.ChunkSpawnerLimiter.Logger;
