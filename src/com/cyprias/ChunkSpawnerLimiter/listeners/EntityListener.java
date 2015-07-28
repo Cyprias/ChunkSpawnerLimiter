@@ -11,13 +11,12 @@ import com.cyprias.ChunkSpawnerLimiter.Logger;
 
 public class EntityListener implements Listener {
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onCreatureSpawnEvent(CreatureSpawnEvent e) {
-		if (e.isCancelled())
-			return;
 
-		if (Config.getBoolean("properties.watch-creature-spawns") == false)
+		if (Config.getBoolean("properties.watch-creature-spawns") == false) {
 			return;
+		}
 
 		String reason = e.getSpawnReason().toString();
 		
@@ -25,14 +24,6 @@ public class EntityListener implements Listener {
 			Logger.debug("Igonring " + e.getEntity().getType().toString() + " due to spawnreason " + reason);
 			return;
 		}
-		
-		//CreatureSpawnEvent.SpawnReason.
-		
-		// LivingEntity ent = e.getEntity();
-
-		// EntityType t = ent.getType();
-		// String eType = t.toString();
-		// String eGroup = MobGroupCompare.getMobGroup(ent);
 
 		Chunk c = e.getLocation().getChunk();
 
@@ -48,7 +39,7 @@ public class EntityListener implements Listener {
 					WorldListener.CheckChunk(w.getChunkAt(x, z));
 				}
 			}
-
 		}
 	}
+
 }

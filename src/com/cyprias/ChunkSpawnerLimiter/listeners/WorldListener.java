@@ -25,6 +25,7 @@ public class WorldListener implements Listener {
 
 	class inspectTask extends BukkitRunnable {
 		Chunk c;
+
 		public inspectTask(Chunk c) {
 			this.c = c;
 		}
@@ -32,58 +33,56 @@ public class WorldListener implements Listener {
 		@Override
 		public void run() {
 			Logger.debug("Active check " + c.getX() + " " + c.getZ());
-			if (!c.isLoaded()){
+			if (!c.isLoaded()) {
 				Plugin.cancelTask(taskID);
 				return;
 			}
-			
 			CheckChunk(c);
 		}
 
 		int taskID;
 		public void setId(int taskID) {
 			this.taskID = taskID;
-			
 		}
-		
 	}
 
 	@EventHandler
 	public void onChunkLoadEvent(final ChunkLoadEvent e) {
 		Logger.debug("ChunkLoadEvent " + e.getChunk().getX() + " " + e.getChunk().getZ());
-		if (Config.getBoolean("properties.active-inspections")){
+		if (Config.getBoolean("properties.active-inspections")) {
 			inspectTask task = new inspectTask(e.getChunk());
-			int taskID = Plugin.scheduleSyncRepeatingTask(task, Config.getInt("properties.inspection-frequency") * 20L);
+			int taskID = Plugin.scheduleSyncRepeatingTask(task,
+					Config.getInt("properties.inspection-frequency") * 20L);
 			task.setId(taskID);
 
 			chunkTasks.put(e.getChunk(), taskID);
 		}
 
-		if (Config.getBoolean("properties.check-chunk-load"))
+		if (Config.getBoolean("properties.check-chunk-load")) {
 			CheckChunk(e.getChunk());
+		}
 	}
 
 	@EventHandler
 	public void onChunkUnloadEvent(final ChunkUnloadEvent e) {
 		Logger.debug("ChunkUnloadEvent " + e.getChunk().getX() + " " + e.getChunk().getZ());
-		
-		if (chunkTasks.containsKey(e.getChunk())){
-			Plugin.getInstance().getServer().getScheduler().cancelTask(chunkTasks.get(e.getChunk()));
+
+		if (chunkTasks.containsKey(e.getChunk())) {
+			Plugin.getInstance().getServer().getScheduler()
+					.cancelTask(chunkTasks.get(e.getChunk()));
 			chunkTasks.remove(e.getChunk());
 		}
 
 		if (Config.getBoolean("properties.check-chunk-unload"))
 			CheckChunk(e.getChunk());
 	}
-	
-	
 
 	public static void CheckChunk(Chunk c) {
-        // Stop processing quickly if this world is excluded from limits.
+		// Stop processing quickly if this world is excluded from limits.
 		if (Config.getStringList("excluded-worlds").contains(c.getWorld().getName())) {
-            return;
-        }
-		
+			return;
+		}
+
 		Entity[] ents = c.getEntities();
 
 		HashMap<String, ArrayList<Entity>> types = new HashMap<String, ArrayList<Entity>>();
@@ -112,32 +111,25 @@ public class WorldListener implements Listener {
 			String eType = entry.getKey();
 			int limit = Config.getInt("entities." + eType);
 
-			// Logger.debug(c.getX() + " " + c.getZ() + ": " + eType + " = " +
-			// entry.getValue().size());
-
 			if (entry.getValue().size() > limit) {
-				Logger.debug("Removing " + (entry.getValue().size() - limit) + " " + eType + " @ " + c.getX() + " " + c.getZ());
+				Logger.debug("Removing " + (entry.getValue().size() - limit) + " " + eType + " @ "
+						+ c.getX() + " " + c.getZ());
 
-				if (Config.getBoolean("properties.notify-players")){
+				if (Config.getBoolean("properties.notify-players")) {
 					for (int i = ents.length - 1; i >= 0; i--) {
-						if (ents[i] instanceof Player){
+						if (ents[i] instanceof Player) {
 							Player p = (Player) ents[i];
-							ChatUtils.send(p, Config.getString("messages.removedEntites", entry.getValue().size() - limit, eType));
+							ChatUtils.send(p, Config.getString("messages.removedEntites",
+									entry.getValue().size() - limit, eType));
 						}
 					}
 				}
-					
 
 				for (int i = entry.getValue().size() - 1; i >= limit; i--) {
 					entry.getValue().get(i).remove();
 				}
-
 			}
-
 		}
-
 	}
-	
-	
 
 }

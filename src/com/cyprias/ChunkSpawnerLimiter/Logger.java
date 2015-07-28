@@ -12,23 +12,21 @@ public class Logger {
 
 	public static void info(String format, Object... args) {
 		logger.info(getLogPrefix() + String.format(format, args));
-		
-		
 	}
 
 	public static void info(Object... args) {
 		String msg = "%s";
-		for (int i=1; i<args.length; i++){
+		for (int i = 1; i < args.length; i++) {
 			msg += ", %s";
 		}
 		info(msg, args);
 	}
-	
+
 	public static void debug(String mess) {
 		if (Config.getBoolean("properties.debug-messages"))
-			logger.info(cleanColorCodes(getLogPrefix() +"[Debug] "+ mess));
+			logger.info(cleanColorCodes(getLogPrefix() + "[Debug] " + mess));
 	}
-	
+
 	public static void infoRaw(String mess) {
 		logger.info(mess);
 	}
@@ -72,7 +70,7 @@ public class Logger {
 	public static final String getLogPrefix() {
 		return String.format(Plugin.chatPrefix);
 	}
-	
+
 	// replace color codes with the colors
 	public static final String replaceColorCodes(String mess) {
 		return mess.replaceAll("(&([" + colorCodes + "]))", "\u00A7$2");
