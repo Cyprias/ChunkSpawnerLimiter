@@ -6,13 +6,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
-import com.cyprias.ChunkSpawnerLimiter.Plugin;
+import com.cyprias.ChunkSpawnerLimiter.ChunkSpawnerLimiterPlugin;
 
 public class EntityListener implements Listener {
 
-	private final Plugin plugin;
+	private final ChunkSpawnerLimiterPlugin plugin;
 
-	public EntityListener(Plugin plugin) {
+	public EntityListener(ChunkSpawnerLimiterPlugin plugin) {
 		this.plugin = plugin;
 	}
 

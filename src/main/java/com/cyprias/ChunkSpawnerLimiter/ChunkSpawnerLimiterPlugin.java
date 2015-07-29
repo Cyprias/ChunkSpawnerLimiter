@@ -22,7 +22,7 @@ import com.cyprias.ChunkSpawnerLimiter.compare.MobGroupCompare;
 import com.cyprias.ChunkSpawnerLimiter.listeners.EntityListener;
 import com.cyprias.ChunkSpawnerLimiter.listeners.WorldListener;
 
-public class Plugin extends JavaPlugin {
+public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
@@ -68,38 +68,41 @@ public class Plugin extends JavaPlugin {
 		}
 
 		for (String property : defaultConfig.getKeys(true)) {
-			if (!diskConfig.contains(property))
+			if (!diskConfig.contains(property)) {
 				getLogger().warning(property + " is missing from your config.yml, using default.");
+			}
 		}
 	}
 
-	public void checkChunk(Chunk c) {
+	public void checkChunk(Chunk chunk) {
 		// Stop processing quickly if this world is excluded from limits.
-		if (getConfig().getStringList("excluded-worlds").contains(c.getWorld().getName())) {
+		if (getConfig().getStringList("excluded-worlds").contains(chunk.getWorld().getName())) {
 			return;
 		}
 
-		Entity[] ents = c.getEntities();
+		Entity[] entities = chunk.getEntities();
 
 		HashMap<String, ArrayList<Entity>> types = new HashMap<>();
 
-		for (int i = ents.length - 1; i >= 0; i--) {
+		for (int i = entities.length - 1; i >= 0; i--) {
 			// ents[i].getType();
-			EntityType t = ents[i].getType();
+			EntityType t = entities[i].getType();
 
 			String eType = t.toString();
-			String eGroup = MobGroupCompare.getMobGroup(ents[i]);
+			String eGroup = MobGroupCompare.getMobGroup(entities[i]);
 
 			if (getConfig().contains("entities." + eType)) {
-				if (!types.containsKey(eType))
+				if (!types.containsKey(eType)) {
 					types.put(eType, new ArrayList<Entity>());
-				types.get(eType).add(ents[i]);
+				}
+				types.get(eType).add(entities[i]);
 			}
 
 			if (getConfig().contains("entities." + eGroup)) {
-				if (!types.containsKey(eGroup))
+				if (!types.containsKey(eGroup)) {
 					types.put(eGroup, new ArrayList<Entity>());
-				types.get(eGroup).add(ents[i]);
+				}
+				types.get(eGroup).add(entities[i]);
 			}
 		}
 
@@ -112,15 +115,15 @@ public class Plugin extends JavaPlugin {
 			}
 
 			debug("Removing " + (entry.getValue().size() - limit) + " " + eType + " @ "
-					+ c.getX() + " " + c.getZ());
+					+ chunk.getX() + " " + chunk.getZ());
 
 			if (getConfig().getBoolean("properties.notify-players")) {
 				String notification = String.format(ChatColor.translateAlternateColorCodes('&',
 						getConfig().getString("messages.removedEntites")),
 						entry.getValue().size() - limit, eType);
-				for (int i = ents.length - 1; i >= 0; i--) {
-					if (ents[i] instanceof Player) {
-						Player p = (Player) ents[i];
+				for (int i = entities.length - 1; i >= 0; i--) {
+					if (entities[i] instanceof Player) {
+						Player p = (Player) entities[i];
 						p.sendMessage(notification);
 					}
 				}
@@ -148,8 +151,9 @@ public class Plugin extends JavaPlugin {
 	}
 
 	public void debug(String mess) {
-		if (getConfig().getBoolean("properties.debug-messages"))
+		if (getConfig().getBoolean("properties.debug-messages")) {
 			getLogger().info(ChatColor.stripColor("[Debug] " + mess));
+		}
 	}
 
 }
