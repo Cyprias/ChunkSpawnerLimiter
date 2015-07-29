@@ -81,7 +81,7 @@ public class Plugin extends JavaPlugin {
 
 		Entity[] ents = c.getEntities();
 
-		HashMap<String, ArrayList<Entity>> types = new HashMap<String, ArrayList<Entity>>();
+		HashMap<String, ArrayList<Entity>> types = new HashMap<>();
 
 		for (int i = ents.length - 1; i >= 0; i--) {
 			// ents[i].getType();
@@ -107,25 +107,42 @@ public class Plugin extends JavaPlugin {
 			String eType = entry.getKey();
 			int limit = getConfig().getInt("entities." + eType);
 
-			if (entry.getValue().size() > limit) {
-				debug("Removing " + (entry.getValue().size() - limit) + " " + eType + " @ "
-						+ c.getX() + " " + c.getZ());
+			if (entry.getValue().size() < limit) {
+				continue;
+			}
 
-				if (getConfig().getBoolean("properties.notify-players")) {
-					String notification = String.format(ChatColor.translateAlternateColorCodes('&',
-							getConfig().getString("messages.removedEntites")),
-							entry.getValue().size() - limit, eType);
-					for (int i = ents.length - 1; i >= 0; i--) {
-						if (ents[i] instanceof Player) {
-							Player p = (Player) ents[i];
-							p.sendMessage(notification);
-						}
+			debug("Removing " + (entry.getValue().size() - limit) + " " + eType + " @ "
+					+ c.getX() + " " + c.getZ());
+
+			if (getConfig().getBoolean("properties.notify-players")) {
+				String notification = String.format(ChatColor.translateAlternateColorCodes('&',
+						getConfig().getString("messages.removedEntites")),
+						entry.getValue().size() - limit, eType);
+				for (int i = ents.length - 1; i >= 0; i--) {
+					if (ents[i] instanceof Player) {
+						Player p = (Player) ents[i];
+						p.sendMessage(notification);
 					}
 				}
+			}
 
-				for (int i = entry.getValue().size() - 1; i >= limit; i--) {
-					entry.getValue().get(i).remove();
+			boolean skipNamed = getConfig().getBoolean("properties.preserve-named-entities");
+			int toRemove = entry.getValue().size() - limit;
+			int index = entry.getValue().size() - 1;
+			while (toRemove > 0 && index >= 0) {
+				Entity entity = entry.getValue().get(index);
+				if (!skipNamed || entity.getCustomName() != null) {
+					entity.remove();
+					--toRemove;
 				}
+				--index;
+			}
+			if (toRemove == 0) {
+				continue;
+			}
+			index = entry.getValue().size() - toRemove - 1;
+			for (; index < entry.getValue().size(); index++) {
+				entry.getValue().get(index).remove();
 			}
 		}
 	}
