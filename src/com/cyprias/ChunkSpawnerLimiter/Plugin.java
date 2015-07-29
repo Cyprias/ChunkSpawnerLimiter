@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -111,11 +112,13 @@ public class Plugin extends JavaPlugin {
 						+ c.getX() + " " + c.getZ());
 
 				if (getConfig().getBoolean("properties.notify-players")) {
+					String notification = String.format(ChatColor.translateAlternateColorCodes('&',
+							getConfig().getString("messages.removedEntites")),
+							entry.getValue().size() - limit, eType);
 					for (int i = ents.length - 1; i >= 0; i--) {
 						if (ents[i] instanceof Player) {
 							Player p = (Player) ents[i];
-							ChatUtils.send(p, String.format(getConfig().getString("messages.removedEntites"),
-									entry.getValue().size() - limit, eType));
+							p.sendMessage(notification);
 						}
 					}
 				}
@@ -129,7 +132,7 @@ public class Plugin extends JavaPlugin {
 
 	public void debug(String mess) {
 		if (getConfig().getBoolean("properties.debug-messages"))
-			getLogger().info(ChatUtils.cleanColorCodes("[Debug] " + mess));
+			getLogger().info(ChatColor.stripColor("[Debug] " + mess));
 	}
 
 }
