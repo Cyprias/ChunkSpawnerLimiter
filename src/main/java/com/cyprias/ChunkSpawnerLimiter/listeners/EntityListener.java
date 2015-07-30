@@ -2,7 +2,6 @@ package com.cyprias.ChunkSpawnerLimiter.listeners;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -18,38 +17,40 @@ public class EntityListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onCreatureSpawnEvent(CreatureSpawnEvent e) {
+	public void onCreatureSpawnEvent(CreatureSpawnEvent event) {
 
-		String reason = e.getSpawnReason().toString();
+		String reason = event.getSpawnReason().toString();
 
 		if (!plugin.getConfig().getBoolean("spawn-reasons." + reason)
 				|| !plugin.getConfig().getBoolean("spawn-reasons." + reason)) {
-			plugin.debug("Ignoring " + e.getEntity().getType().toString() + " due to spawnreason " + reason);
+			plugin.debug("Ignoring " + event.getEntity().getType().toString() + " due to spawnreason " + reason);
 			return;
 		}
 
-		Chunk c = e.getLocation().getChunk();
+		Chunk chunk = event.getLocation().getChunk();
 
-		Entity entity = plugin.getConfig().getBoolean("properties.prevent-creature-spawns") ? e.getEntity() : null;
-
-		if (plugin.checkChunk(c, entity)) {
-			e.setCancelled(true);
-		}
-
-		if (entity != null) {
+		if (plugin.getConfig().getBoolean("properties.prevent-creature-spawns")) {
+			if (plugin.checkChunk(chunk, event.getEntity())) {
+				event.setCancelled(true);
+			}
 			// If we are preventing new spawns instead of culling, don't cull surrounding chunks.
 			return;
 		}
 
 		int surrounding = plugin.getConfig().getInt("properties.check-surrounding-chunks");
+		int x = chunk.getX() - surrounding;
+		int z = chunk.getZ() - surrounding;
+		int endX = chunk.getX() + surrounding + 1;
+		int endZ = chunk.getZ() + surrounding + 1;
 
-		if (surrounding > 0) {
-			World w = e.getLocation().getWorld();
-			for (int x = c.getX() + surrounding; x >= (c.getX() - surrounding); x--) {
-				for (int z = c.getZ() + surrounding; z >= (c.getZ() - surrounding); z--) {
-					// Logger.debug("Checking chunk " + x + " " +z);
-					plugin.checkChunk(w.getChunkAt(x, z), null);
+		World w = event.getLocation().getWorld();
+		for (; x < endX; x++) {
+			for (; z < endZ; z++) {
+				// Logger.debug("Checking chunk " + x + " " +z);
+				if (!w.isChunkLoaded(x, z)) {
+					continue;
 				}
+				plugin.checkChunk(w.getChunkAt(x, z), null);
 			}
 		}
 	}
