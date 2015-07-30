@@ -94,7 +94,7 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 		}
 
 		Entity[] entities = chunk.getEntities();
-		HashMap<String, ArrayList<Entity>> types = new HashMap<>();
+		HashMap<String, ArrayList<Entity>> types = new HashMap<String, ArrayList<Entity>>();
 
 		for (int i = entities.length - 1; i >= 0; i--) {
 

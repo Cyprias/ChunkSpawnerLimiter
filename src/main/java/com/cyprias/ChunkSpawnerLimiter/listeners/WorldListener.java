@@ -19,7 +19,7 @@ public class WorldListener implements Listener {
 
 	public WorldListener(ChunkSpawnerLimiterPlugin plugin) {
 		this.plugin = plugin;
-		this.chunkTasks = new HashMap<>();
+		this.chunkTasks = new HashMap<Chunk, BukkitTask>();
 	}
 
 	private class InspectTask extends BukkitRunnable {
