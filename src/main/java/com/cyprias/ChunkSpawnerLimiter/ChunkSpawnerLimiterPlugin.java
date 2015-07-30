@@ -34,8 +34,22 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 		checkForMissingProperties();
 
 		// Register our event listener.
-		getServer().getPluginManager().registerEvents(new EntityListener(this), this);
-		getServer().getPluginManager().registerEvents(new WorldListener(this), this);
+		if (getConfig().getBoolean("properties.watch-creature-spawns")) {
+			getServer().getPluginManager().registerEvents(new EntityListener(this), this);
+		}
+		if (getConfig().getBoolean("properties.active-inspections")
+				|| getConfig().getBoolean("properties.check-chunk-load")) {
+			getServer().getPluginManager().registerEvents(new WorldListener(this), this);
+		}
+
+		// Disable if no listeners are enabled.
+		if (!getConfig().getBoolean("properties.watch-creature-spawns")
+				&& !getConfig().getBoolean("properties.active-inspections")
+				&& !getConfig().getBoolean("properties.check-chunk-load")) {
+			getLogger().severe("No listeners are enabled, the plugin will do nothing!");
+			getLogger().severe("Enable creature spawn monitoring, active inspections, or chunk load inspections.");
+			getServer().getPluginManager().disablePlugin(this);
+		}
 
 		// Start the Metrics.
 		if (getConfig().getBoolean("properties.use-metrics")) {

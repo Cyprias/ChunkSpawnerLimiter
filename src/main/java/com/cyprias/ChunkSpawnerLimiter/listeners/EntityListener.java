@@ -19,14 +19,10 @@ public class EntityListener implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onCreatureSpawnEvent(CreatureSpawnEvent e) {
 
-		if (plugin.getConfig().getBoolean("properties.watch-creature-spawns") == false) {
-			return;
-		}
-
 		String reason = e.getSpawnReason().toString();
-		
+
 		if (!plugin.getConfig().getBoolean("spawn-reasons." + reason)
-				|| plugin.getConfig().getBoolean("spawn-reasons." + reason) == false) {
+				|| !plugin.getConfig().getBoolean("spawn-reasons." + reason)) {
 			plugin.debug("Ignoring " + e.getEntity().getType().toString() + " due to spawnreason " + reason);
 			return;
 		}
