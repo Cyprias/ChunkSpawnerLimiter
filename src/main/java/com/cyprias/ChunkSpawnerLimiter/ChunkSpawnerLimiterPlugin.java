@@ -12,7 +12,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -88,21 +87,18 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 		}
 	}
 
-	public void checkChunk(Chunk chunk) {
+	public boolean checkChunk(Chunk chunk, Entity entity) {
 		// Stop processing quickly if this world is excluded from limits.
 		if (getConfig().getStringList("excluded-worlds").contains(chunk.getWorld().getName())) {
-			return;
+			return false;
 		}
 
 		Entity[] entities = chunk.getEntities();
-
 		HashMap<String, ArrayList<Entity>> types = new HashMap<>();
 
 		for (int i = entities.length - 1; i >= 0; i--) {
-			// ents[i].getType();
-			EntityType t = entities[i].getType();
 
-			String eType = t.toString();
+			String eType = entities[i].getType().name();
 			String eGroup = MobGroupCompare.getMobGroup(entities[i]);
 
 			if (getConfig().contains("entities." + eType)) {
@@ -120,7 +116,38 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 			}
 		}
 
+		if (entity != null) {
+
+			String eType = entity.getType().name();
+
+			if (getConfig().contains("entities." + eType)) {
+				int typeCount;
+				if (types.containsKey(eType)) {
+					typeCount = types.get(eType).size() + 1;
+				} else {
+					typeCount = 1;
+				}
+				if (typeCount > getConfig().getInt("entities." + eType)) {
+					return true;
+				}
+			}
+
+			String eGroup = MobGroupCompare.getMobGroup(entity);
+
+			if (getConfig().contains("entities." + eGroup)) {
+				int typeCount;
+				if (types.containsKey(eGroup)) {
+					typeCount = types.get(eGroup).size() + 1;
+				} else {
+					typeCount = 1;
+				}
+				return typeCount > getConfig().getInt("entities." + eGroup);
+			}
+
+		}
+
 		for (Entry<String, ArrayList<Entity>> entry : types.entrySet()) {
+
 			String eType = entry.getKey();
 			int limit = getConfig().getInt("entities." + eType);
 
@@ -147,9 +174,9 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 			int toRemove = entry.getValue().size() - limit;
 			int index = entry.getValue().size() - 1;
 			while (toRemove > 0 && index >= 0) {
-				Entity entity = entry.getValue().get(index);
-				if (!skipNamed || entity.getCustomName() != null) {
-					entity.remove();
+				Entity toCheck = entry.getValue().get(index);
+				if (!skipNamed || toCheck.getCustomName() != null) {
+					toCheck.remove();
 					--toRemove;
 				}
 				--index;
@@ -162,6 +189,8 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 				entry.getValue().get(index).remove();
 			}
 		}
+
+		return false;
 	}
 
 	public void debug(String mess) {

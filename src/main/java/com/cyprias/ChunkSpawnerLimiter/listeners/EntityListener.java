@@ -2,6 +2,7 @@ package com.cyprias.ChunkSpawnerLimiter.listeners;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -29,7 +30,16 @@ public class EntityListener implements Listener {
 
 		Chunk c = e.getLocation().getChunk();
 
-		plugin.checkChunk(c);
+		Entity entity = plugin.getConfig().getBoolean("properties.prevent-creature-spawns") ? e.getEntity() : null;
+
+		if (plugin.checkChunk(c, entity)) {
+			e.setCancelled(true);
+		}
+
+		if (entity != null) {
+			// If we are preventing new spawns instead of culling, don't cull surrounding chunks.
+			return;
+		}
 
 		int surrounding = plugin.getConfig().getInt("properties.check-surrounding-chunks");
 
@@ -38,7 +48,7 @@ public class EntityListener implements Listener {
 			for (int x = c.getX() + surrounding; x >= (c.getX() - surrounding); x--) {
 				for (int z = c.getZ() + surrounding; z >= (c.getZ() - surrounding); z--) {
 					// Logger.debug("Checking chunk " + x + " " +z);
-					plugin.checkChunk(w.getChunkAt(x, z));
+					plugin.checkChunk(w.getChunkAt(x, z), null);
 				}
 			}
 		}

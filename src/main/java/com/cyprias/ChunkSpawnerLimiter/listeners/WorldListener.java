@@ -37,7 +37,7 @@ public class WorldListener implements Listener {
 				this.cancel();
 				return;
 			}
-			plugin.checkChunk(chunk);
+			plugin.checkChunk(chunk, null);
 		}
 	}
 
@@ -52,7 +52,7 @@ public class WorldListener implements Listener {
 		}
 
 		if (plugin.getConfig().getBoolean("properties.check-chunk-load")) {
-			plugin.checkChunk(event.getChunk());
+			plugin.checkChunk(event.getChunk(), null);
 		}
 	}
 
@@ -65,7 +65,7 @@ public class WorldListener implements Listener {
 		}
 
 		if (plugin.getConfig().getBoolean("properties.check-chunk-unload")) {
-			plugin.checkChunk(event.getChunk());
+			plugin.checkChunk(event.getChunk(), null);
 		}
 	}
 
