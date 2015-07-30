@@ -179,7 +179,7 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 			int index = entry.getValue().size() - 1;
 			while (toRemove > 0 && index >= 0) {
 				Entity toCheck = entry.getValue().get(index);
-				if (!skipNamed || toCheck.getCustomName() != null) {
+				if (!skipNamed || toCheck.getCustomName() == null) {
 					toCheck.remove();
 					--toRemove;
 				}

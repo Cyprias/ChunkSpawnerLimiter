@@ -93,4 +93,4 @@ entities:
 excluded-worlds: []
 
 messages:
-  removedEntites: "&7Removed %s %s in your chunk."
+  removedEntites: "&4[&bCSL&4] &7Removed %s %s in your chunk."
