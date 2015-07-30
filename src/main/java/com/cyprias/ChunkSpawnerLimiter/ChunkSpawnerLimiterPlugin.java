@@ -11,13 +11,17 @@ import java.util.Map.Entry;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Ambient;
+import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Monster;
+import org.bukkit.entity.NPC;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.WaterMob;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import org.mcstats.Metrics;
 
-import com.cyprias.ChunkSpawnerLimiter.compare.MobGroupCompare;
 import com.cyprias.ChunkSpawnerLimiter.listeners.EntityListener;
 import com.cyprias.ChunkSpawnerLimiter.listeners.WorldListener;
 
@@ -99,7 +103,7 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 		for (int i = entities.length - 1; i >= 0; i--) {
 
 			String eType = entities[i].getType().name();
-			String eGroup = MobGroupCompare.getMobGroup(entities[i]);
+			String eGroup = getMobGroup(entities[i]);
 
 			if (getConfig().contains("entities." + eType)) {
 				if (!types.containsKey(eType)) {
@@ -132,7 +136,7 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 				}
 			}
 
-			String eGroup = MobGroupCompare.getMobGroup(entity);
+			String eGroup = getMobGroup(entity);
 
 			if (getConfig().contains("entities." + eGroup)) {
 				int typeCount;
@@ -195,8 +199,40 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 
 	public void debug(String mess) {
 		if (getConfig().getBoolean("properties.debug-messages")) {
-			getLogger().info(ChatColor.stripColor("[Debug] " + mess));
+			getLogger().info("[Debug] " + mess);
 		}
+	}
+
+	public static String getMobGroup(Entity entity) {
+		// Determine the general group this mob belongs to.
+		if (entity instanceof Animals) {
+			// Chicken, Cow, MushroomCow, Ocelot, Pig, Sheep, Wolf
+			return "ANIMAL";
+		}
+
+		if (entity instanceof Monster) {
+			// Blaze, CaveSpider, Creeper, Enderman, Giant, PigZombie, Silverfish, Skeleton, Spider,
+			// Witch, Wither, Zombie
+			return "MONSTER";
+		}
+
+		if (entity instanceof Ambient) {
+			// Bat
+			return "AMBIENT";
+		}
+
+		if (entity instanceof WaterMob) {
+			// Squid
+			return "WATER_MOB";
+		}
+
+		if (entity instanceof NPC) {
+			// Villager
+			return "NPC";
+		}
+
+		// Anything else.
+		return "OTHER";
 	}
 
 }
