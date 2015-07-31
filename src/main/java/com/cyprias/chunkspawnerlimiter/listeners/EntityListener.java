@@ -1,4 +1,4 @@
-package com.cyprias.ChunkSpawnerLimiter.listeners;
+package com.cyprias.chunkspawnerlimiter.listeners;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
-import com.cyprias.ChunkSpawnerLimiter.ChunkSpawnerLimiterPlugin;
+import com.cyprias.chunkspawnerlimiter.ChunkSpawnerLimiterPlugin;
 
 public class EntityListener implements Listener {
 

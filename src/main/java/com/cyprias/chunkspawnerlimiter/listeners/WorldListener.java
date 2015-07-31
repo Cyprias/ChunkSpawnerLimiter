@@ -1,4 +1,4 @@
-package com.cyprias.ChunkSpawnerLimiter.listeners;
+package com.cyprias.chunkspawnerlimiter.listeners;
 
 import java.util.HashMap;
 
@@ -10,7 +10,7 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.cyprias.ChunkSpawnerLimiter.ChunkSpawnerLimiterPlugin;
+import com.cyprias.chunkspawnerlimiter.ChunkSpawnerLimiterPlugin;
 
 public class WorldListener implements Listener {
 

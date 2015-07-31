@@ -1,4 +1,4 @@
-package com.cyprias.ChunkSpawnerLimiter;
+package com.cyprias.chunkspawnerlimiter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,8 +22,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import org.mcstats.Metrics;
 
-import com.cyprias.ChunkSpawnerLimiter.listeners.EntityListener;
-import com.cyprias.ChunkSpawnerLimiter.listeners.WorldListener;
+import com.cyprias.chunkspawnerlimiter.listeners.EntityListener;
+import com.cyprias.chunkspawnerlimiter.listeners.WorldListener;
 
 public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 
