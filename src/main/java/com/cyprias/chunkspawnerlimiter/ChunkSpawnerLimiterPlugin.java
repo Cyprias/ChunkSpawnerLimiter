@@ -14,6 +14,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Ambient;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.NPC;
 import org.bukkit.entity.Player;
@@ -190,6 +191,10 @@ public class ChunkSpawnerLimiterPlugin extends JavaPlugin {
 			}
 			index = entry.getValue().size() - toRemove - 1;
 			for (; index < entry.getValue().size(); index++) {
+				// don't remove players
+				if (entry.getValue().get(index) instanceof HumanEntity) {
+					continue;
+				}
 				entry.getValue().get(index).remove();
 			}
 		}
